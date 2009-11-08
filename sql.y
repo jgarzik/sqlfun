@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include "sql-parser.h"
 
  %}
 
@@ -347,7 +348,7 @@ stmt_list: error ';'
 
    /* statements: select statement */
 
-stmt: select_stmt { emit("STMT"); }
+stmt: select_stmt { sqlp_stmt(); }
    ;
 
 select_stmt: SELECT select_opts select_expr_list
@@ -506,7 +507,7 @@ table_subquery: '(' select_stmt ')' { emit("SUBQUERY"); }
 
    /* statements: delete statement */
 
-stmt: delete_stmt { emit("STMT"); }
+stmt: delete_stmt { sqlp_stmt(); }
    ;
 
 delete_stmt: DELETE delete_opts FROM NAME
@@ -540,7 +541,7 @@ delete_stmt: DELETE delete_opts
 
    /* statements: insert statement */
 
-stmt: insert_stmt { emit("STMT"); }
+stmt: insert_stmt { sqlp_stmt(); }
    ;
 
 insert_stmt: INSERT insert_opts opt_into NAME
@@ -604,7 +605,7 @@ insert_asgn_list:
    ;
 
    /** replace just like insert **/
-stmt: replace_stmt { emit("STMT"); }
+stmt: replace_stmt { sqlp_stmt(); }
    ;
 
 replace_stmt: REPLACE insert_opts opt_into NAME
@@ -625,7 +626,7 @@ replace_stmt: REPLACE insert_opts opt_into NAME opt_col_names
   ;
 
 /** update **/
-stmt: update_stmt { emit("STMT"); }
+stmt: update_stmt { sqlp_stmt(); }
    ;
 
 update_stmt: UPDATE update_opts table_references
@@ -658,12 +659,12 @@ update_asgn_list:
 
    /** create database **/
 
-stmt: create_database_stmt { emit("STMT"); }
+stmt: create_database_stmt { sqlp_stmt(); }
    ;
 
 create_database_stmt: 
-     CREATE DATABASE opt_if_not_exists NAME { emit("CREATEDATABASE %d %s", $3, $4); free($4); }
-   | CREATE SCHEMA opt_if_not_exists NAME { emit("CREATEDATABASE %d %s", $3, $4); free($4); }
+     CREATE DATABASE opt_if_not_exists NAME { sqlp_create_db($3, $4); free($4); }
+   | CREATE SCHEMA opt_if_not_exists NAME { sqlp_create_db($3, $4); free($4); }
    ;
 
 opt_if_not_exists:  /* nil */ { $$ = 0; }
@@ -673,12 +674,12 @@ opt_if_not_exists:  /* nil */ { $$ = 0; }
 
    /** drop database **/
 
-stmt: drop_database_stmt { emit("STMT"); }
+stmt: drop_database_stmt { sqlp_stmt(); }
    ;
 
 drop_database_stmt: 
-     DROP DATABASE opt_if_exists NAME { emit("DROPDATABASE %d %s", $3, $4); free($4); }
-   | DROP SCHEMA opt_if_exists NAME { emit("DROPDATABASE %d %s", $3, $4); free($4); }
+     DROP DATABASE opt_if_exists NAME { sqlp_drop_db($3, $4); free($4); }
+   | DROP SCHEMA opt_if_exists NAME { sqlp_drop_db($3, $4); free($4); }
    ;
 
 opt_if_exists:  /* nil */ { $$ = 0; }
@@ -687,7 +688,7 @@ opt_if_exists:  /* nil */ { $$ = 0; }
 
 
    /** create table **/
-stmt: create_table_stmt { emit("STMT"); }
+stmt: create_table_stmt { sqlp_stmt(); }
    ;
 
 create_table_stmt: CREATE opt_temporary TABLE opt_if_not_exists NAME
@@ -818,24 +819,24 @@ opt_temporary:   /* nil */ { $$ = 0; }
 
    /** drop table **/
 
-stmt: drop_table_stmt { emit("STMT"); }
+stmt: drop_table_stmt { sqlp_stmt(); }
    ;
 
 drop_table_stmt: 
-   DROP opt_temporary TABLE opt_if_exists table_list { emit("DROPDATABASE %d %d %d", $2, $4, $5); }
+   DROP opt_temporary TABLE opt_if_exists table_list { sqlp_drop_table($2, $4, $5); }
    ;
 
-table_list: NAME          { emit("TABLE %s", $1); free($1); $$ = 1; }
+table_list: NAME          { sqlp_table($1); free($1); $$ = 1; }
   | STRING                 { lyyerror(@1, "string %s found where name required", $1);
-                              emit("TABLE %s", $1); free($1); $$ = 1; }
-  | table_list ',' NAME   { emit("TABLE %s", $3); free($3); $$ = $1 + 1; }
+                              sqlp_table($1); free($1); $$ = 1; }
+  | table_list ',' NAME   { sqlp_table($3); free($3); $$ = $1 + 1; }
   | table_list ',' STRING { lyyerror(@3, "string %s found where name required", $1);
-                            emit("TABLE %s", $3); free($3); $$ = $1 + 1; }
+                            sqlp_table($3); free($3); $$ = $1 + 1; }
   ;
 
    /**** set user variables ****/
 
-stmt: set_stmt { emit("STMT"); }
+stmt: set_stmt { sqlp_stmt(); }
    ;
 
 set_stmt: SET set_list ;

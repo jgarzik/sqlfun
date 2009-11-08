@@ -15,9 +15,9 @@ all:	${PROGRAMS}
 
 # chapter 4
 
-OBJS	= sql.tab.o sql.o
+OBJS	= sql.tab.o sql.o exec.o
 
-sql:	${OBJS}
+sql:	${OBJS} sql-parser.h
 	${CC} -o $@ ${OBJS}
 
 sql.tab.c sql.tab.h:	sql.y
