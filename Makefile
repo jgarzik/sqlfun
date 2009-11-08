@@ -15,8 +15,10 @@ all:	${PROGRAMS}
 
 # chapter 4
 
-sql:	sql.tab.o sql.o
-	${CC} -o $@ sql.tab.o sql.o
+OBJS	= sql.tab.o sql.o
+
+sql:	${OBJS}
+	${CC} -o $@ ${OBJS}
 
 sql.tab.c sql.tab.h:	sql.y
 	${YACC} -vd sql.y
@@ -27,7 +29,7 @@ sql.c:	sql.l
 sql.o:	sql.c sql.tab.h
 
 clean:
-	rm -f sql sql.tab.c sql.tab.h sql.c sql.tab.o sql.o \
+	rm -f sql sql.tab.c sql.tab.h sql.c ${OBJS} \
 	sql.output
 
 .SUFFIXES:	.l .y .c
