@@ -1,0 +1,8 @@
+
+*.o
+*.output
+
+sql.tab.*
+sql.c
+sql
+
