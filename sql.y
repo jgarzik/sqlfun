@@ -322,6 +322,7 @@ typedef struct YYLTYPE {
 %type <intval> delete_opts delete_list
 %type <intval> insert_opts insert_vals insert_vals_list
 %type <intval> insert_asgn_list opt_if_not_exists update_opts update_asgn_list
+%type <intval> opt_if_exists table_list
 %type <intval> opt_temporary opt_length opt_binary opt_uz enum_list
 %type <intval> column_atts data_type opt_ignore_replace create_col_list
 
@@ -670,6 +671,20 @@ opt_if_not_exists:  /* nil */ { $$ = 0; }
                         $$ = $2; /* NOT EXISTS hack */ }
    ;
 
+   /** drop database **/
+
+stmt: drop_database_stmt { emit("STMT"); }
+   ;
+
+drop_database_stmt: 
+     DROP DATABASE opt_if_exists NAME { emit("DROPDATABASE %d %s", $3, $4); free($4); }
+   | DROP SCHEMA opt_if_exists NAME { emit("DROPDATABASE %d %s", $3, $4); free($4); }
+   ;
+
+opt_if_exists:  /* nil */ { $$ = 0; }
+   | IF EXISTS        { $$ = 1; }
+   ;
+
 
    /** create table **/
 stmt: create_table_stmt { emit("STMT"); }
@@ -800,6 +815,23 @@ opt_ignore_replace: /* nil */ { $$ = 0; }
 opt_temporary:   /* nil */ { $$ = 0; }
    | TEMPORARY { $$ = 1;}
    ;
+
+   /** drop table **/
+
+stmt: drop_table_stmt { emit("STMT"); }
+   ;
+
+drop_table_stmt: 
+   DROP opt_temporary TABLE opt_if_exists table_list { emit("DROPDATABASE %d %d %d", $2, $4, $5); }
+   ;
+
+table_list: NAME          { emit("TABLE %s", $1); free($1); $$ = 1; }
+  | STRING                 { lyyerror(@1, "string %s found where name required", $1);
+                              emit("TABLE %s", $1); free($1); $$ = 1; }
+  | table_list ',' NAME   { emit("TABLE %s", $3); free($3); $$ = $1 + 1; }
+  | table_list ',' STRING { lyyerror(@3, "string %s found where name required", $1);
+                            emit("TABLE %s", $3); free($3); $$ = $1 + 1; }
+  ;
 
    /**** set user variables ****/
 
