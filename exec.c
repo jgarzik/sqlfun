@@ -47,6 +47,14 @@ void sqlp_alias(const char *alias)
 	printf("exec ALIAS %s\n", alias);
 }
 
+void sqlp_assign(const char *db_name, const char *name)
+{
+	printf("exec ASSIGN %s%s%s\n",
+	       db_name ? db_name : "",
+	       db_name ? "." : "",
+	       name);
+}
+
 void sqlp_bool(int val)
 {
 	printf("exec BOOL %d\n", val);
@@ -97,6 +105,21 @@ void sqlp_col_def_bool(int bool)
 	printf("exec ATTR DEFAULT-BOOL %d\n", bool);
 }
 
+void sqlp_col_key_pri(int n_cols)
+{
+	printf("exec KEY-PRI %d\n", n_cols);
+}
+
+void sqlp_col_key(int n_cols)
+{
+	printf("exec KEY %d\n", n_cols);
+}
+
+void sqlp_col_key_textidx(int n_cols)
+{
+	printf("exec KEY-TEXTIDX %d\n", n_cols);
+}
+
 void sqlp_column(const char *name)
 {
 	printf("exec COLUMN %s\n", name);
@@ -111,6 +134,16 @@ void sqlp_create_tbl(int temp, int if_n_exists, int n_cols,
 		     const char *db_name, const char *name)
 {
 	printf("exec CREATE-TABLE %d %d %d %s%s%s\n",
+	       temp, if_n_exists, n_cols,
+	       db_name ? db_name : "",
+	       db_name ? "." : "",
+	       name);
+}
+
+void sqlp_create_tbl_sel(int temp, int if_n_exists, int n_cols,
+		     const char *db_name, const char *name)
+{
+	printf("exec CREATE-TABLE-SELECT %d %d %d %s%s%s\n",
 	       temp, if_n_exists, n_cols,
 	       db_name ? db_name : "",
 	       db_name ? "." : "",
@@ -182,6 +215,16 @@ void sqlp_float(float val)
 	printf("exec FLOAT %g\n", val);
 }
 
+void sqlp_index(const char *name)
+{
+	printf("exec INDEX %s\n", name);
+}
+
+void sqlp_index_hint(int n_indexed, int opts)
+{
+	printf("exec INDEX-HINT %d %d\n", n_indexed, opts);
+}
+
 void sqlp_ins_cols(int n_cols)
 {
 	printf("exec INSERT-COLS %d\n", n_cols);
@@ -192,9 +235,39 @@ void sqlp_ins_default(void)
 	printf("exec INSERT-DEFAULT\n");
 }
 
+void sqlp_ins_dup_update(int n_assn)
+{
+	printf("exec INSERT DUP-ONUPDATE %d\n", n_assn);
+}
+
 void sqlp_insert(int opts, int n_vals, const char *tbl_name)
 {
 	printf("exec INSERT %d %d %s\n", opts, n_vals, tbl_name);
+}
+
+void sqlp_insert_assn(int opts, int n_assn, const char *tbl_name)
+{
+	printf("exec INSERT-ASSN %d %d %s\n", opts, n_assn, tbl_name);
+}
+
+void sqlp_insert_sel(int opts, const char *tbl_name)
+{
+	printf("exec INSERT-SEL %d %s\n", opts, tbl_name);
+}
+
+void sqlp_join(int opts)
+{
+	printf("exec JOIN %d\n", opts);
+}
+
+void sqlp_join_expr(void)
+{
+	printf("exec JOIN-ON EXPR\n");
+}
+
+void sqlp_join_using(int n_cols)
+{
+	printf("exec JOIN-USING %d\n", n_cols);
 }
 
 void sqlp_name(const char *name)
@@ -207,9 +280,29 @@ void sqlp_number(int val)
 	printf("exec INT/NUMBER %d\n", val);
 }
 
+void sqlp_replace_assn(int opts, int n_assn, const char *name)
+{
+	printf("exec REPLACE-ASSN %d %d %s\n", opts, n_assn, name);
+}
+
+void sqlp_replace_vals(int opts, int n_vals, const char *name)
+{
+	printf("exec REPLACE-VALS %d %d %s\n", opts, n_vals, name);
+}
+
+void sqlp_replace_sel(int opts, const char *name)
+{
+	printf("exec REPLACE-SEL %d %s\n", opts, name);
+}
+
 void sqlp_select(int opts, int n_expr, int n_tbl_ref)
 {
 	printf("exec SELECT %d %d %d\n", opts, n_expr, n_tbl_ref);
+}
+
+void sqlp_select_nodata(int opts, int n_expr)
+{
+	printf("exec SELECT-NODATA %d %d\n", opts, n_expr);
 }
 
 void sqlp_select_all(void)
@@ -232,12 +325,27 @@ void sqlp_string(const char *str)
 	printf("exec STRING %s\n", str);
 }
 
+void sqlp_subquery(void)
+{
+	printf("exec SUBQUERY\n");
+}
+
+void sqlp_subquery_as(const char *name)
+{
+	printf("exec SUBQUERY-AS %s\n", name);
+}
+
 void sqlp_table(const char *db_name, const char *name)
 {
 	printf("exec TABLE %s%s%s\n",
 	       db_name ? db_name : "",
 	       db_name ? "." : "",
 	       name);
+}
+
+void sqlp_update(int opts, int n_tbl_ref, int n_assn)
+{
+	printf("exec UPDATE %d %d %d\n", opts, n_tbl_ref, n_assn);
 }
 
 void sqlp_uservar(const char *str)

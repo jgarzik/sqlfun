@@ -352,7 +352,7 @@ stmt: select_stmt { sqlp_stmt(); }
    ;
 
 select_stmt: SELECT select_opts select_expr_list
-                        { emit("SELECTNODATA %d %d", $2, $3); } ;
+                        { sqlp_select_nodata($2, $3); } ;
     | SELECT select_opts select_expr_list
      FROM table_references
      opt_where opt_groupby opt_having opt_orderby opt_limit
@@ -433,7 +433,7 @@ table_factor:
     NAME opt_as_alias index_hint { sqlp_table(NULL, $1); free($1); }
   | NAME '.' NAME opt_as_alias index_hint { sqlp_table($1, $3);
                                free($1); free($3); }
-  | table_subquery opt_as NAME { emit("SUBQUERYAS %s", $3); free($3); }
+  | table_subquery opt_as NAME { sqlp_subquery_as($3); free($3); }
   | '(' table_references ')' { emit("TABLEREFERENCES %d", $2); }
   ;
 
@@ -448,15 +448,15 @@ opt_as_alias: AS NAME { sqlp_alias($2); free($2); }
 
 join_table:
     table_reference opt_inner_cross JOIN table_factor opt_join_condition
-                  { emit("JOIN %d", 0100+$2); }
+                  { sqlp_join(0100+$2); }
   | table_reference STRAIGHT_JOIN table_factor
-                  { emit("JOIN %d", 0200); }
+                  { sqlp_join(0200); }
   | table_reference STRAIGHT_JOIN table_factor ON expr
-                  { emit("JOIN %d", 0200); }
+                  { sqlp_join(0200); }
   | table_reference left_or_right opt_outer JOIN table_factor join_condition
-                  { emit("JOIN %d", 0300+$2+$3); }
+                  { sqlp_join(0300+$2+$3); }
   | table_reference NATURAL opt_left_or_right_outer JOIN table_factor
-                  { emit("JOIN %d", 0400+$3); }
+                  { sqlp_join(0400+$3); }
   ;
 
 opt_inner_cross: /* nil */ { $$ = 0; }
@@ -480,17 +480,17 @@ opt_left_or_right_outer: LEFT opt_outer { $$ = 1 + $2; }
 opt_join_condition: join_condition | /* nil */ ;
 
 join_condition:
-    ON expr { emit("ONEXPR"); }
-    | USING '(' column_list ')' { emit("USING %d", $3); }
+    ON expr { sqlp_join_expr(); }
+    | USING '(' column_list ')' { sqlp_join_using($3); }
     ;
 
 index_hint:
      USE KEY opt_for_join '(' index_list ')'
-                  { emit("INDEXHINT %d %d", $5, 010+$3); }
+                  { sqlp_index_hint($5, 010+$3); }
    | IGNORE KEY opt_for_join '(' index_list ')'
-                  { emit("INDEXHINT %d %d", $5, 020+$3); }
+                  { sqlp_index_hint($5, 020+$3); }
    | FORCE KEY opt_for_join '(' index_list ')'
-                  { emit("INDEXHINT %d %d", $5, 030+$3); }
+                  { sqlp_index_hint($5, 030+$3); }
    | /* nil */
    ;
 
@@ -498,11 +498,11 @@ opt_for_join: FOR JOIN { $$ = 1; }
    | /* nil */ { $$ = 0; }
    ;
 
-index_list: NAME  { emit("INDEX %s", $1); free($1); $$ = 1; }
-   | index_list ',' NAME { emit("INDEX %s", $3); free($3); $$ = $1 + 1; }
+index_list: NAME  { sqlp_index($1); free($1); $$ = 1; }
+   | index_list ',' NAME { sqlp_index($3); free($3); $$ = $1 + 1; }
    ;
 
-table_subquery: '(' select_stmt ')' { emit("SUBQUERY"); }
+table_subquery: '(' select_stmt ')' { sqlp_subquery(); }
    ;
 
    /* statements: delete statement */
@@ -536,7 +536,7 @@ opt_dot_star: /* nil */ | '.' '*' ;
 delete_stmt: DELETE delete_opts
     FROM delete_list
     USING table_references opt_where
-            { emit("DELETEMULTI %d %d %d", $2, $4, $6); }
+            { sqlp_delete_multi($2, $4, $6); }
 ;
 
    /* statements: insert statement */
@@ -551,7 +551,7 @@ insert_stmt: INSERT insert_opts opt_into NAME
    ;
 
 opt_ondupupdate: /* nil */
-   | ONDUPLICATE KEY UPDATE insert_asgn_list { emit("DUPUPDATE %d", $4); }
+   | ONDUPLICATE KEY UPDATE insert_asgn_list { sqlp_ins_dup_update($4); }
    ;
 
 insert_opts: /* nil */ { $$ = 0; }
@@ -581,27 +581,27 @@ insert_vals:
 insert_stmt: INSERT insert_opts opt_into NAME
     SET insert_asgn_list
     opt_ondupupdate
-     { emit("INSERTASGN %d %d %s", $2, $6, $4); free($4) }
+     { sqlp_insert_assn($2, $6, $4); free($4) }
    ;
 
 insert_stmt: INSERT insert_opts opt_into NAME opt_col_names
     select_stmt
-    opt_ondupupdate { emit("INSERTSELECT %d %s", $2, $4); free($4); }
+    opt_ondupupdate { sqlp_insert_sel($2, $4); free($4); }
   ;
 
 insert_asgn_list:
      NAME COMPARISON expr 
        { if ($2 != 4) { lyyerror(@2,"bad insert assignment to %s", $1); YYERROR; }
-       emit("ASSIGN %s", $1); free($1); $$ = 1; }
+       sqlp_assign(NULL, $1); free($1); $$ = 1; }
    | NAME COMPARISON DEFAULT
        { if ($2 != 4) { lyyerror(@2,"bad insert assignment to %s", $1); YYERROR; }
-                 emit("DEFAULT"); emit("ASSIGN %s", $1); free($1); $$ = 1; }
+                 sqlp_ins_default(); sqlp_assign(NULL, $1); free($1); $$ = 1; }
    | insert_asgn_list ',' NAME COMPARISON expr
        { if ($4 != 4) { lyyerror(@4,"bad insert assignment to %s", $1); YYERROR; }
-                 emit("ASSIGN %s", $3); free($3); $$ = $1 + 1; }
+                 sqlp_assign(NULL, $3); free($3); $$ = $1 + 1; }
    | insert_asgn_list ',' NAME COMPARISON DEFAULT
        { if ($4 != 4) { lyyerror(@4,"bad insert assignment to %s", $1); YYERROR; }
-                 emit("DEFAULT"); emit("ASSIGN %s", $3); free($3); $$ = $1 + 1; }
+                 sqlp_ins_default(); sqlp_assign(NULL, $3); free($3); $$ = $1 + 1; }
    ;
 
    /** replace just like insert **/
@@ -611,18 +611,18 @@ stmt: replace_stmt { sqlp_stmt(); }
 replace_stmt: REPLACE insert_opts opt_into NAME
      opt_col_names
      VALUES insert_vals_list
-     opt_ondupupdate { emit("REPLACEVALS %d %d %s", $2, $7, $4); free($4) }
+     opt_ondupupdate { sqlp_replace_vals($2, $7, $4); free($4) }
    ;
 
 replace_stmt: REPLACE insert_opts opt_into NAME
     SET insert_asgn_list
     opt_ondupupdate
-     { emit("REPLACEASGN %d %d %s", $2, $6, $4); free($4) }
+     { sqlp_replace_assn($2, $6, $4); free($4) }
    ;
 
 replace_stmt: REPLACE insert_opts opt_into NAME opt_col_names
     select_stmt
-    opt_ondupupdate { emit("REPLACESELECT %d %s", $2, $4); free($4); }
+    opt_ondupupdate { sqlp_replace_sel($2, $4); free($4); }
   ;
 
 /** update **/
@@ -633,7 +633,7 @@ update_stmt: UPDATE update_opts table_references
     SET update_asgn_list
     opt_where
     opt_orderby
-opt_limit { emit("UPDATE %d %d %d", $2, $3, $5); }
+opt_limit { sqlp_update($2, $3, $5); }
 ;
 
 update_opts: /* nil */ { $$ = 0; }
@@ -644,16 +644,16 @@ update_opts: /* nil */ { $$ = 0; }
 update_asgn_list:
      NAME COMPARISON expr 
      { if ($2 != 4) { lyyerror(@2,"bad update assignment to %s", $1); YYERROR; }
-	 emit("ASSIGN %s", $1); free($1); $$ = 1; }
+	 sqlp_assign(NULL, $1); free($1); $$ = 1; }
    | NAME '.' NAME COMPARISON expr 
    { if ($4 != 4) { lyyerror(@4,"bad update assignment to %s", $1); YYERROR; }
-	 emit("ASSIGN %s.%s", $1, $3); free($1); free($3); $$ = 1; }
+	 sqlp_assign($1, $3); free($1); free($3); $$ = 1; }
    | update_asgn_list ',' NAME COMPARISON expr
    { if ($4 != 4) { lyyerror(@4,"bad update assignment to %s", $3); YYERROR; }
-	 emit("ASSIGN %s.%s", $3); free($3); $$ = $1 + 1; }
+	 sqlp_assign(NULL, $3); free($3); $$ = $1 + 1; }
    | update_asgn_list ',' NAME '.' NAME COMPARISON expr
    { if ($6 != 4) { lyyerror(@6,"bad update  assignment to %s.$s", $3, $5); YYERROR; }
-	 emit("ASSIGN %s.%s", $3, $5); free($3); free($5); $$ = 1; }
+	 sqlp_assign($3, $5); free($3); free($5); $$ = 1; }
    ;
 
 
@@ -702,21 +702,21 @@ create_table_stmt: CREATE opt_temporary TABLE opt_if_not_exists NAME '.' NAME
 
 create_table_stmt: CREATE opt_temporary TABLE opt_if_not_exists NAME
    '(' create_col_list ')'
-create_select_statement { emit("CREATESELECT %d %d %d %s", $2, $4, $7, $5); free($5); }
+create_select_statement { sqlp_create_tbl_sel($2, $4, $7, NULL, $5); free($5); }
     ;
 
 create_table_stmt: CREATE opt_temporary TABLE opt_if_not_exists NAME
-   create_select_statement { emit("CREATESELECT %d %d 0 %s", $2, $4, $5); free($5); }
+   create_select_statement { sqlp_create_tbl_sel($2, $4, 0, NULL, $5); free($5); }
     ;
 
 create_table_stmt: CREATE opt_temporary TABLE opt_if_not_exists NAME '.' NAME
    '(' create_col_list ')'
-   create_select_statement  { emit("CREATESELECT %d %d 0 %s.%s", $2, $4, $5, $7);
+   create_select_statement  { sqlp_create_tbl_sel($2, $4, 0, $5, $7);
                               free($5); free($7); }
     ;
 
 create_table_stmt: CREATE opt_temporary TABLE opt_if_not_exists NAME '.' NAME
-   create_select_statement { emit("CREATESELECT %d %d 0 %s.%s", $2, $4, $5, $7);
+   create_select_statement { sqlp_create_tbl_sel($2, $4, 0, $5, $7);
                           free($5); free($7); }
     ;
 
@@ -727,11 +727,11 @@ create_col_list: create_definition { $$ = 1; }
 create_definition: { sqlp_start_col(); } NAME data_type column_atts
                    { sqlp_def_col($3, $2); free($2); }
 
-    | PRIMARY KEY '(' column_list ')'    { emit("PRIKEY %d", $4); }
-    | KEY '(' column_list ')'            { emit("KEY %d", $3); }
-    | INDEX '(' column_list ')'          { emit("KEY %d", $3); }
-    | FULLTEXT INDEX '(' column_list ')' { emit("TEXTINDEX %d", $4); }
-    | FULLTEXT KEY '(' column_list ')'   { emit("TEXTINDEX %d", $4); }
+    | PRIMARY KEY '(' column_list ')'    { sqlp_col_key_pri($4); }
+    | KEY '(' column_list ')'            { sqlp_col_key($3); }
+    | INDEX '(' column_list ')'          { sqlp_col_key($3); }
+    | FULLTEXT INDEX '(' column_list ')' { sqlp_col_key_textidx($4); }
+    | FULLTEXT KEY '(' column_list ')'   { sqlp_col_key_textidx($4); }
     ;
 
 column_atts: /* nil */ { $$ = 0; }
