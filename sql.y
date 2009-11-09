@@ -692,11 +692,11 @@ stmt: create_table_stmt { sqlp_stmt(); }
    ;
 
 create_table_stmt: CREATE opt_temporary TABLE opt_if_not_exists NAME
-   '(' create_col_list ')' { emit("CREATE %d %d %d %s", $2, $4, $7, $5); free($5); }
+   '(' create_col_list ')' { sqlp_create_tbl($2, $4, $7, NULL, $5); free($5); }
    ;
 
 create_table_stmt: CREATE opt_temporary TABLE opt_if_not_exists NAME '.' NAME
-   '(' create_col_list ')' { emit("CREATE %d %d %d %s.%s", $2, $4, $9, $5, $7);
+   '(' create_col_list ')' { sqlp_create_tbl($2, $4, $9, $5, $7);
                           free($5); free($7); }
    ;
 
@@ -724,8 +724,8 @@ create_col_list: create_definition { $$ = 1; }
     | create_col_list ',' create_definition { $$ = $1 + 1; }
     ;
 
-create_definition: { emit("STARTCOL"); } NAME data_type column_atts
-                   { emit("COLUMNDEF %d %s", $3, $2); free($2); }
+create_definition: { sqlp_start_col(); } NAME data_type column_atts
+                   { sqlp_def_col($3, $2); free($2); }
 
     | PRIMARY KEY '(' column_list ')'    { emit("PRIKEY %d", $4); }
     | KEY '(' column_list ')'            { emit("KEY %d", $3); }
