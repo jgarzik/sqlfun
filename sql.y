@@ -332,7 +332,6 @@ typedef struct YYLTYPE {
 %{
 void yyerror(char *s, ...);
 void lyyerror(YYLTYPE, char *s, ...);
-void emit(char *s, ...);
  %}
   /* free discarded tokens */
 %destructor { printf ("free at %d %s\n",@$.first_line, $$); free($$); } <strval>
@@ -909,38 +908,38 @@ expr: expr IN '(' val_list ')'       { sqlp_expr_is_in($4); }
    | EXISTS '(' select_stmt ')'      { sqlp_expr_op(SEO_EXISTS); if($1)sqlp_expr_op(SEO_NOT); }
    ;
 
-expr: NAME '(' opt_val_list ')' {  emit("CALL %d %s", $3, $1); free($1); }
+expr: NAME '(' opt_val_list ')' {  sqlp_call($3, $1); free($1); }
    ;
 
   /* functions with special syntax */
-expr: FCOUNT '(' '*' ')' { emit("COUNTALL") }
-   | FCOUNT '(' expr ')' { emit(" CALL 1 COUNT"); } 
+expr: FCOUNT '(' '*' ')' { sqlp_call(0, "COUNTALL") }
+   | FCOUNT '(' expr ')' { sqlp_call(1, "COUNT"); } 
 
-expr: FSUBSTRING '(' val_list ')' {  emit("CALL %d SUBSTR", $3);}
-   | FSUBSTRING '(' expr FROM expr ')' {  emit("CALL 2 SUBSTR"); }
-   | FSUBSTRING '(' expr FROM expr FOR expr ')' {  emit("CALL 3 SUBSTR"); }
-| FTRIM '(' val_list ')' { emit("CALL %d TRIM", $3); }
-   | FTRIM '(' trim_ltb expr FROM val_list ')' { emit("CALL 3 TRIM"); }
+expr: FSUBSTRING '(' val_list ')' {  sqlp_call($3, "SUBSTR");}
+   | FSUBSTRING '(' expr FROM expr ')' {  sqlp_call(2, "SUBSTR"); }
+   | FSUBSTRING '(' expr FROM expr FOR expr ')' {  sqlp_call(3, "SUBSTR"); }
+| FTRIM '(' val_list ')' { sqlp_call($3, "TRIM"); }
+   | FTRIM '(' trim_ltb expr FROM val_list ')' { sqlp_call(3, "TRIM"); }
    ;
 
-trim_ltb: LEADING { emit("INT 1"); }
-   | TRAILING { emit("INT 2"); }
-   | BOTH { emit("INT 3"); }
+trim_ltb: LEADING { sqlp_call_trim_opts(0); }
+   | TRAILING { sqlp_call_trim_opts(1); }
+   | BOTH { sqlp_call_trim_opts(2); }
    ;
 
-expr: FDATE_ADD '(' expr ',' interval_exp ')' { emit("CALL 3 DATE_ADD"); }
-   |  FDATE_SUB '(' expr ',' interval_exp ')' { emit("CALL 3 DATE_SUB"); }
+expr: FDATE_ADD '(' expr ',' interval_exp ')' { sqlp_call_date(3, SEO_ADD); }
+   |  FDATE_SUB '(' expr ',' interval_exp ')' { sqlp_call_date(3, SEO_SUB); }
    ;
 
-interval_exp: INTERVAL expr DAY_HOUR { emit("NUMBER 1"); }
-   | INTERVAL expr DAY_MICROSECOND { emit("NUMBER 2"); }
-   | INTERVAL expr DAY_MINUTE { emit("NUMBER 3"); }
-   | INTERVAL expr DAY_SECOND { emit("NUMBER 4"); }
-   | INTERVAL expr YEAR_MONTH { emit("NUMBER 5"); }
-   | INTERVAL expr YEAR       { emit("NUMBER 6"); }
-   | INTERVAL expr HOUR_MICROSECOND { emit("NUMBER 7"); }
-   | INTERVAL expr HOUR_MINUTE { emit("NUMBER 8"); }
-   | INTERVAL expr HOUR_SECOND { emit("NUMBER 9"); }
+interval_exp: INTERVAL expr DAY_HOUR { sqlp_date_interval(SDI_DAY_HOUR); }
+   | INTERVAL expr DAY_MICROSECOND { sqlp_date_interval(SDI_DAY_MICROSECOND); }
+   | INTERVAL expr DAY_MINUTE { sqlp_date_interval(SDI_DAY_MINUTE); }
+   | INTERVAL expr DAY_SECOND { sqlp_date_interval(SDI_DAY_SECOND); }
+   | INTERVAL expr YEAR_MONTH { sqlp_date_interval(SDI_YEAR_MONTH); }
+   | INTERVAL expr YEAR       { sqlp_date_interval(SDI_YEAR); }
+   | INTERVAL expr HOUR_MICROSECOND { sqlp_date_interval(SDI_HOUR_MICROSECOND); }
+   | INTERVAL expr HOUR_MINUTE { sqlp_date_interval(SDI_HOUR_MINUTE); }
+   | INTERVAL expr HOUR_SECOND { sqlp_date_interval(SDI_HOUR_SECOND); }
    ;
 
 expr: CASE expr case_list END           { sqlp_caseval($3, 0); }
@@ -970,19 +969,6 @@ expr: BINARY expr %prec UMINUS { sqlp_expr_op(SEO_STRTOBIN); }
    ;
 
 %%
-
-void
-emit(char *s, ...)
-{
-  extern yylineno;
-
-  va_list ap;
-  va_start(ap, s);
-
-  printf("rpn: ");
-  vfprintf(stdout, s, ap);
-  printf("\n");
-}
 
 void
 yyerror(char *s, ...)

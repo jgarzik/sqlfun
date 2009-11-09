@@ -40,10 +40,25 @@ enum sqlp_expr_ops {
 	SEO_STRTOBIN	= 23,
 };
 
+enum sqlp_date_intervals {
+	SDI_DAY_HOUR		= 0,
+	SDI_DAY_MICROSECOND	= 1,
+	SDI_DAY_MINUTE		= 2,
+	SDI_DAY_SECOND		= 3,
+	SDI_YEAR_MONTH		= 4,
+	SDI_YEAR		= 5,
+	SDI_HOUR_MICROSECOND	= 6,
+	SDI_HOUR_MINUTE		= 7,
+	SDI_HOUR_SECOND		= 8,
+};
+
 extern void sqlp_alias(const char *alias);
 extern void sqlp_assign(const char *db_name, const char *name);
 extern void sqlp_assign_at(const char *name);
 extern void sqlp_bool(int val);
+extern void sqlp_call(int n_args, const char *name);
+extern void sqlp_call_date(int n_args, enum sqlp_expr_ops op);
+extern void sqlp_call_trim_opts(int trim_opts);
 extern void sqlp_case(int n_list, int have_else);
 extern void sqlp_caseval(int n_list, int have_else);
 extern void sqlp_col_attr(enum sqlp_col_attribs attr);
@@ -65,6 +80,7 @@ extern void sqlp_create_tbl(int temp, int if_n_exists, int n_cols,
 extern void sqlp_create_tbl_sel(int temp, int if_n_exists, int n_cols,
 			    const char *db_name, const char *name);
 extern void sqlp_create_sel(int ignore_replace);
+extern void sqlp_date_interval(enum sqlp_date_intervals interval);
 extern void sqlp_def_col(int flags, const char *name);
 extern void sqlp_delete(int opts, const char *name);
 extern void sqlp_delete_multi(int opts, int n_del, int n_tbl_ref);

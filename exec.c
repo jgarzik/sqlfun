@@ -43,6 +43,18 @@ static const char *op_names[] = {
 	[SEO_STRTOBIN]	= "SEO_STRTOBIN",
 };
 
+static const char *interval_names[] = {
+	[SDI_DAY_HOUR]		= "SDI_DAY_HOUR",
+	[SDI_DAY_MICROSECOND]	= "SDI_DAY_MICROSECOND",
+	[SDI_DAY_MINUTE]	= "SDI_DAY_MINUTE",
+	[SDI_DAY_SECOND]	= "SDI_DAY_SECOND",
+	[SDI_YEAR_MONTH]	= "SDI_YEAR_MONTH",
+	[SDI_YEAR]		= "SDI_YEAR",
+	[SDI_HOUR_MICROSECOND]	= "SDI_HOUR_MICROSECOND",
+	[SDI_HOUR_MINUTE]	= "SDI_HOUR_MINUTE",
+	[SDI_HOUR_SECOND]	= "SDI_HOUR_SECOND",
+};
+
 void sqlp_alias(const char *alias)
 {
 	printf("exec ALIAS %s\n", alias);
@@ -64,6 +76,23 @@ void sqlp_assign_at(const char *name)
 void sqlp_bool(int val)
 {
 	printf("exec BOOL %d\n", val);
+}
+
+void sqlp_call(int n_args, const char *name)
+{
+	printf("exec CALL %d %s\n", n_args, name);
+}
+
+void sqlp_call_date(int n_args, enum sqlp_expr_ops op)
+{
+	printf("exec CALL %d DATE %s\n",
+	       n_args,
+	       op == SEO_ADD ? "ADD" : "SUB");
+}
+
+void sqlp_call_trim_opts(int trim_opts)
+{
+	printf("exec CALL TRIM OPTS %d\n", trim_opts);
 }
 
 void sqlp_case(int n_list, int have_else)
@@ -169,6 +198,11 @@ void sqlp_create_tbl_sel(int temp, int if_n_exists, int n_cols,
 	       db_name ? db_name : "",
 	       db_name ? "." : "",
 	       name);
+}
+
+void sqlp_date_interval(enum sqlp_date_intervals interval)
+{
+	printf("exec DATE-INTERVAL %s\n", interval_names[interval]);
 }
 
 void sqlp_def_col(int flags, const char *name)
