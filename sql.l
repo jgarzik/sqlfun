@@ -9,21 +9,28 @@
  * With error reporting and recovery
  */
 
-%option noyywrap nodefault yylineno case-insensitive
+%option noyywrap nodefault yylineno case-insensitive reentrant bison-bridge
+%option bison-locations
+%option header-file="sql.lex.h"
+
 %{
-#include "sql.tab.h"
 #include <stdarg.h>
 #include <string.h>
+#include "sql.tab.h"
+#include "sql-parser-state.h"
 
-void yyerror(char *s, ...);
+void yyerror(YYLTYPE *, struct psql_state *pstate, char *s, ...);
+
 int oldstate;
 
 /* handle locations */
+#if 0
 int yycolumn = 1;
+#endif
 
-#define YY_USER_ACTION yylloc.filename = filename; \
-    yylloc.first_line = yylloc.last_line = yylineno; \
-    yylloc.first_column = yycolumn; yylloc.last_column = yycolumn+yyleng-1; \
+#define YY_USER_ACTION yylloc->filename = filename; \
+    yylloc->first_line = yylloc->last_line = yylineno; \
+    yylloc->first_column = yycolumn; yylloc->last_column = yycolumn+yyleng-1; \
     yycolumn += yyleng;
 
 
@@ -33,6 +40,9 @@ int yycolumn = 1;
 %s BTWMODE
 
 %%
+%{
+	struct psql_state *pstate = yyextra;
+%}
 
   /* keywords */
 
@@ -106,8 +116,8 @@ ELSEIF	{ return ELSEIF; }
 END	{ return END; }
 ENUM { return ENUM; }
 ESCAPED	{ return ESCAPED; }
-EXISTS	{ yylval.subtok = 0; return EXISTS; }
-NOT[ \t]+EXISTS	{ yylval.subtok = 1; return EXISTS; }
+EXISTS	{ yylval->subtok = 0; return EXISTS; }
+NOT[ \t]+EXISTS	{ yylval->subtok = 1; return EXISTS; }
 EXIT	{ return EXIT; }
 EXPLAIN	{ return EXPLAIN; }
 FETCH	{ return FETCH; }
@@ -262,35 +272,35 @@ ZEROFILL	{ return ZEROFILL; }
 
    /* numbers */
 
--?[0-9]+	        { yylval.intval = atoi(yytext); return INTNUM; } 
+-?[0-9]+	        { yylval->intval = atoi(yytext); return INTNUM; } 
 
 -?[0-9]+"."[0-9]* |
 -?"."[0-9]+	|
 -?[0-9]+E[-+]?[0-9]+	|
 -?[0-9]+"."[0-9]*E[-+]?[0-9]+ |
--?"."[0-9]*E[-+]?[0-9]+	{ yylval.floatval = atof(yytext) ;
+-?"."[0-9]*E[-+]?[0-9]+	{ yylval->floatval = atof(yytext) ;
                                   return APPROXNUM; }
     /* booleans */
-TRUE	{ yylval.intval = 1; return BOOL; }
-UNKNOWN	{ yylval.intval = -1; return BOOL; }
-FALSE	{ yylval.intval = 0; return BOOL; }
+TRUE	{ yylval->intval = 1; return BOOL; }
+UNKNOWN	{ yylval->intval = -1; return BOOL; }
+FALSE	{ yylval->intval = 0; return BOOL; }
 
    /* strings */
 
 '(\\.|''|[^'\n])*'	|
-\"(\\.|\"\"|[^"\n])*\"  { yylval.strval = strdup(yytext); return STRING; }
+\"(\\.|\"\"|[^"\n])*\"  { yylval->strval = strdup(yytext); return STRING; }
 
-'(\\.|[^'\n])*$	        { yyerror("Unterminated string %s", yytext); }
-\"(\\.|[^"\n])*$	{ yyerror("Unterminated string %s", yytext); }
+'(\\.|[^'\n])*$	        { yyerror(yylloc, pstate, "Unterminated string %s", yytext); }
+\"(\\.|[^"\n])*$	{ yyerror(yylloc, pstate, "Unterminated string %s", yytext); }
 
    /* hex strings */
 X'[0-9A-F]+' |  
-0X[0-9A-F]+  { yylval.strval = strdup(yytext); return STRING; }
+0X[0-9A-F]+  { yylval->strval = strdup(yytext); return STRING; }
 
    /* bit strings */
 
 0B[01]+      |
-B'[01]+'     { yylval.strval = strdup(yytext); return STRING; }
+B'[01]+'     { yylval->strval = strdup(yytext); return STRING; }
 
 
    /* operators */
@@ -299,17 +309,17 @@ B'[01]+'     { yylval.strval = strdup(yytext); return STRING; }
 "&&"		{ return ANDOP; }
 "||"            { return OR; }
 
-"="	{ yylval.subtok = 4; return COMPARISON; }
-"<=>"	{ yylval.subtok = 12; return COMPARISON; }
-">="	{ yylval.subtok = 6; return COMPARISON; }
-">"	{ yylval.subtok = 2; return COMPARISON; }
-"<="	{ yylval.subtok = 5; return COMPARISON; }
-"<"	{ yylval.subtok = 1; return COMPARISON; }
+"="	{ yylval->subtok = 4; return COMPARISON; }
+"<=>"	{ yylval->subtok = 12; return COMPARISON; }
+">="	{ yylval->subtok = 6; return COMPARISON; }
+">"	{ yylval->subtok = 2; return COMPARISON; }
+"<="	{ yylval->subtok = 5; return COMPARISON; }
+"<"	{ yylval->subtok = 1; return COMPARISON; }
 "!="	|
-"<>"	{ yylval.subtok = 3; return COMPARISON; }
+"<>"	{ yylval->subtok = 3; return COMPARISON; }
 
-"<<"	{ yylval.subtok = 1; return SHIFT; }
-">>"	{ yylval.subtok = 2; return SHIFT; }
+"<<"	{ yylval->subtok = 1; return SHIFT; }
+">>"	{ yylval->subtok = 2; return SHIFT; }
 
         /* functions */
 
@@ -321,28 +331,28 @@ DATE_SUB/"(" { return FDATE_SUB; }
 	/* 
          * peek ahead and return function if name(
          */
-COUNT    { int c = input(); unput(c);
+COUNT    { int c = input(pstate->scaninfo); unput(c);
            if(c == '(') return FCOUNT;
-           yylval.strval = strdup(yytext);
+           yylval->strval = strdup(yytext);
            return NAME; }
 
-[A-Za-z][A-Za-z0-9_]*	{ yylval.strval = strdup(yytext);
+[A-Za-z][A-Za-z0-9_]*	{ yylval->strval = strdup(yytext);
                           return NAME; }
-`[^`/\\.\n]+`           { yylval.strval = strdup(yytext+1);
-                          yylval.strval[yyleng-2] = 0;
+`[^`/\\.\n]+`           { yylval->strval = strdup(yytext+1);
+                          yylval->strval[yyleng-2] = 0;
                           return NAME; }
 
-`[^`\n]*$               { yyerror("unterminated quoted name %s", yytext); }
+`[^`\n]*$               { yyerror(yylloc, pstate, "unterminated quoted name %s", yytext); }
 
 	/* user variables */
 @[0-9a-z_.$]+ |
 @\"[^"\n]+\" |
 @`[^`\n]+` |
-@'[^'\n]+' { yylval.strval = strdup(yytext+1); return USERVAR; }
+@'[^'\n]+' { yylval->strval = strdup(yytext+1); return USERVAR; }
 
-@\"[^"\n]*$ { yyerror("unterminated quoted user variable %s", yytext); }
-@`[^`\n]*$ { yyerror("unterminated quoted user variable %s", yytext); }
-@'[^'\n]*$ { yyerror("unterminated quoted user variable %s", yytext); }
+@\"[^"\n]*$ { yyerror(yylloc, pstate, "unterminated quoted user variable %s", yytext); }
+@`[^`\n]*$ { yyerror(yylloc, pstate, "unterminated quoted user variable %s", yytext); }
+@'[^'\n]*$ { yyerror(yylloc, pstate, "unterminated quoted user variable %s", yytext); }
 
 
 ":="     { return ASSIGN; }
@@ -355,12 +365,12 @@ COUNT    { int c = input(); unput(c);
 <COMMENT>"*/"   { BEGIN oldstate; }
 <COMMENT>.   ;
 <COMMENT>\n     { yycolumn = 1; }
-<COMMENT><<EOF>> { yyerror("unclosed comment"); }
+<COMMENT><<EOF>> { yyerror(yylloc, pstate, "unclosed comment"); }
 
 	        /* everything else */
 [ \t]           /* white space */
 \n              { yycolumn = 1; }
-.               { yyerror("mystery character '%c'", *yytext); }
+.               { yyerror(yylloc, pstate, "mystery character '%c'", *yytext); }
 
 %%
 

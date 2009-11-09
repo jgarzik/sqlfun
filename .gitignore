@@ -3,6 +3,7 @@
 *.output
 
 sql.tab.*
+sql.lex.h
 sql.c
 sql
 

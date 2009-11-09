@@ -4,6 +4,10 @@
  * See the README file for license conditions and contact info.
  * $Header: /home/johnl/flnb/code/sql/RCS/lpmysql.y,v 2.1 2009/11/08 02:53:39 johnl Exp $
  */
+
+%define api.pure
+%parse-param { struct psql_state *pstate }
+
 /*
  * Parser for mysql subset
  */
@@ -55,6 +59,12 @@ typedef struct YYLTYPE {
 	char *strval;
 	int subtok;
 }
+
+%{
+#include "sql.lex.h"
+#include "sql-parser-state.h"
+#define YYLEX_PARAM pstate->scaninfo
+%}
 	
 	/* names and literal values */
 
@@ -330,8 +340,8 @@ typedef struct YYLTYPE {
 %start stmt_list
 
 %{
-void yyerror(char *s, ...);
-void lyyerror(YYLTYPE, char *s, ...);
+void yyerror(YYLTYPE *, struct psql_state *pstate, char *s, ...);
+void lyyerror(YYLTYPE t, char *s, ...);
  %}
   /* free discarded tokens */
 %destructor { printf ("free at %d %s\n",@$.first_line, $$); free($$); } <strval>
@@ -971,14 +981,14 @@ expr: BINARY expr %prec UMINUS { sqlp_expr_op(SEO_STRTOBIN); }
 %%
 
 void
-yyerror(char *s, ...)
+yyerror(YYLTYPE *t, struct psql_state *pstate, char *s, ...)
 {
   va_list ap;
   va_start(ap, s);
 
-  if(yylloc.first_line)
-    fprintf(stderr, "%s:%d.%d-%d.%d: error: ", yylloc.filename, yylloc.first_line, yylloc.first_column,
-	    yylloc.last_line, yylloc.last_column);
+  if(t->first_line)
+    fprintf(stderr, "%s:%d.%d-%d.%d: error: ", t->filename, t->first_line, t->first_column,
+	    t->last_line, t->last_column);
   vfprintf(stderr, s, ap);
   fprintf(stderr, "\n");
 
@@ -997,25 +1007,37 @@ lyyerror(YYLTYPE t, char *s, ...)
   fprintf(stderr, "\n");
 }
 
+int
 main(int ac, char **av)
 {
-  extern FILE *yyin;
+  FILE *in_f;
+  struct psql_state pstate;
 
   if(ac > 1 && !strcmp(av[1], "-d")) {
     yydebug = 1; ac--; av++;
   }
 
+  memset(&pstate, 0, sizeof(pstate));
+  if (yylex_init_extra(&pstate, &pstate.scaninfo))
+  	return 1;
+
   if(ac > 1) {
-    if((yyin = fopen(av[1], "r")) == NULL) {
+    if((in_f = fopen(av[1], "r")) == NULL) {
       perror(av[1]);
       exit(1);
     }
     filename = av[1];
-  } else
+  } else {
     filename = "(stdin)";
+    in_f = stdin;
+  }
 
-  if(!yyparse())
+  yyset_in(in_f, &pstate.scaninfo);
+
+  if(!yyparse(&pstate))
     printf("SQL parse worked\n");
   else
     printf("SQL parse failed\n");
+
+  return 0;
 } /* main */
