@@ -356,11 +356,11 @@ select_stmt: SELECT select_opts select_expr_list
     | SELECT select_opts select_expr_list
      FROM table_references
      opt_where opt_groupby opt_having opt_orderby opt_limit
-     opt_into_list { emit("SELECT %d %d %d", $2, $3, $5); } ;
+     opt_into_list { sqlp_select($2, $3, $5); } ;
 ;
 
 opt_where: /* nil */ 
-   | WHERE expr { emit("WHERE"); };
+   | WHERE expr { sqlp_where(); };
 
 opt_groupby: /* nil */ 
    | GROUP BY groupby_list opt_with_rollup
@@ -395,12 +395,12 @@ opt_into_list: /* nil */
    | INTO column_list { emit("INTO %d", $2); }
    ;
 
-column_list: NAME          { emit("COLUMN %s", $1); free($1); $$ = 1; }
+column_list: NAME          { sqlp_column($1); free($1); $$ = 1; }
   | STRING                 { lyyerror(@1, "string %s found where name required", $1);
-                              emit("COLUMN %s", $1); free($1); $$ = 1; }
-  | column_list ',' NAME   { emit("COLUMN %s", $3); free($3); $$ = $1 + 1; }
+                              sqlp_column($1); free($1); $$ = 1; }
+  | column_list ',' NAME   { sqlp_column($3); free($3); $$ = $1 + 1; }
   | column_list ',' STRING { lyyerror(@3, "string %s found where name required", $1);
-                            emit("COLUMN %s", $3); free($3); $$ = $1 + 1; }
+                            sqlp_column($3); free($3); $$ = $1 + 1; }
   ;
 
 select_opts:                          { $$ = 0; }
@@ -416,7 +416,7 @@ select_opts:                          { $$ = 0; }
 
 select_expr_list: select_expr { $$ = 1; }
     | select_expr_list ',' select_expr {$$ = $1 + 1; }
-    | '*' { emit("SELECTALL"); $$ = 1; }
+    | '*' { sqlp_select_all(); $$ = 1; }
     ;
 
 select_expr: expr opt_as_alias ;
@@ -430,8 +430,8 @@ table_reference:  table_factor
 ;
 
 table_factor:
-    NAME opt_as_alias index_hint { emit("TABLE %s", $1); free($1); }
-  | NAME '.' NAME opt_as_alias index_hint { emit("TABLE %s.%s", $1, $3);
+    NAME opt_as_alias index_hint { sqlp_table(NULL, $1); free($1); }
+  | NAME '.' NAME opt_as_alias index_hint { sqlp_table($1, $3);
                                free($1); free($3); }
   | table_subquery opt_as NAME { emit("SUBQUERYAS %s", $3); free($3); }
   | '(' table_references ')' { emit("TABLEREFERENCES %d", $2); }
@@ -441,8 +441,8 @@ opt_as: AS
   | /* nil */
   ;
 
-opt_as_alias: AS NAME { emit ("ALIAS %s", $2); free($2); }
-  | NAME              { emit ("ALIAS %s", $1); free($1); }
+opt_as_alias: AS NAME { sqlp_alias($2); free($2); }
+  | NAME              { sqlp_alias($1); free($1); }
   | /* nil */
   ;
 
@@ -512,7 +512,7 @@ stmt: delete_stmt { sqlp_stmt(); }
 
 delete_stmt: DELETE delete_opts FROM NAME
     opt_where opt_orderby opt_limit
-                  { emit("DELETEONE %d %s", $2, $4); free($4); }
+                  { sqlp_delete($2, $4); free($4); }
 ;
 
 delete_opts: delete_opts LOW_PRIORITY { $$ = $1 + 01; }
@@ -524,11 +524,11 @@ delete_opts: delete_opts LOW_PRIORITY { $$ = $1 + 01; }
 delete_stmt: DELETE delete_opts
     delete_list
     FROM table_references opt_where
-            { emit("DELETEMULTI %d %d %d", $2, $3, $5); }
+            { sqlp_delete_multi($2, $3, $5); }
 
-delete_list: NAME opt_dot_star { emit("TABLE %s", $1); free($1); $$ = 1; }
+delete_list: NAME opt_dot_star { sqlp_table(NULL, $1); free($1); $$ = 1; }
    | delete_list ',' NAME opt_dot_star
-            { emit("TABLE %s", $3); free($3); $$ = $1 + 1; }
+            { sqlp_table(NULL, $3); free($3); $$ = $1 + 1; }
    ;
 
 opt_dot_star: /* nil */ | '.' '*' ;
@@ -547,7 +547,7 @@ stmt: insert_stmt { sqlp_stmt(); }
 insert_stmt: INSERT insert_opts opt_into NAME
      opt_col_names
      VALUES insert_vals_list
-     opt_ondupupdate { emit("INSERTVALS %d %d %s", $2, $7, $4); free($4) }
+     opt_ondupupdate { sqlp_insert($2, $7, $4); free($4) }
    ;
 
 opt_ondupupdate: /* nil */
@@ -565,17 +565,17 @@ opt_into: INTO | /* nil */
    ;
 
 opt_col_names: /* nil */
-   | '(' column_list ')' { emit("INSERTCOLS %d", $2); }
+   | '(' column_list ')' { sqlp_ins_cols($2); }
    ;
 
-insert_vals_list: '(' insert_vals ')' { emit("VALUES %d", $2); $$ = 1; }
-   | insert_vals_list ',' '(' insert_vals ')' { emit("VALUES %d", $4); $$ = $1 + 1; }
+insert_vals_list: '(' insert_vals ')' { sqlp_values($2); $$ = 1; }
+   | insert_vals_list ',' '(' insert_vals ')' { sqlp_values($4); $$ = $1 + 1; }
 
 insert_vals:
      expr { $$ = 1; }
-   | DEFAULT { emit("DEFAULT"); $$ = 1; }
+   | DEFAULT { sqlp_ins_default(); $$ = 1; }
    | insert_vals ',' expr { $$ = $1 + 1; }
-   | insert_vals ',' DEFAULT { emit("DEFAULT"); $$ = $1 + 1; }
+   | insert_vals ',' DEFAULT { sqlp_ins_default(); $$ = $1 + 1; }
    ;
 
 insert_stmt: INSERT insert_opts opt_into NAME
@@ -826,12 +826,12 @@ drop_table_stmt:
    DROP opt_temporary TABLE opt_if_exists table_list { sqlp_drop_table($2, $4, $5); }
    ;
 
-table_list: NAME          { sqlp_table($1); free($1); $$ = 1; }
+table_list: NAME          { sqlp_table(NULL, $1); free($1); $$ = 1; }
   | STRING                 { lyyerror(@1, "string %s found where name required", $1);
-                              sqlp_table($1); free($1); $$ = 1; }
-  | table_list ',' NAME   { sqlp_table($3); free($3); $$ = $1 + 1; }
+                              sqlp_table(NULL, $1); free($1); $$ = 1; }
+  | table_list ',' NAME   { sqlp_table(NULL, $3); free($3); $$ = $1 + 1; }
   | table_list ',' STRING { lyyerror(@3, "string %s found where name required", $1);
-                            sqlp_table($3); free($3); $$ = $1 + 1; }
+                            sqlp_table(NULL, $3); free($3); $$ = $1 + 1; }
   ;
 
    /**** set user variables ****/
@@ -851,46 +851,46 @@ USERVAR COMPARISON expr { if ($2 != 4) { lyyerror(@2,"bad set to @%s", $1); YYER
 
    /**** expressions ****/
 
-expr: NAME          { emit("NAME %s", $1); free($1); }
-   | USERVAR         { emit("USERVAR %s", $1); free($1); }
-   | NAME '.' NAME { emit("FIELDNAME %s.%s", $1, $3); free($1); free($3); }
-   | STRING        { emit("STRING %s", $1); free($1); }
-   | INTNUM        { emit("NUMBER %d", $1); }
-   | APPROXNUM     { emit("FLOAT %g", $1); }
-   | BOOL          { emit("BOOL %d", $1); }
+expr: NAME          { sqlp_name($1); free($1); }
+   | USERVAR         { sqlp_uservar($1); free($1); }
+   | NAME '.' NAME { sqlp_fieldname($1, $3); free($1); free($3); }
+   | STRING        { sqlp_string($1); free($1); }
+   | INTNUM        { sqlp_number($1); }
+   | APPROXNUM     { sqlp_float($1); }
+   | BOOL          { sqlp_bool($1); }
    ;
 
-expr: expr '+' expr { emit("ADD"); }
-   | expr '-' expr { emit("SUB"); }
-   | expr '*' expr { emit("MUL"); }
-   | expr '/' expr { emit("DIV"); }
-   | expr '%' expr { emit("MOD"); }
-   | expr MOD expr { emit("MOD"); }
-   | '-' expr %prec UMINUS { emit("NEG"); }
-   | expr ANDOP expr { emit("AND"); }
-   | expr OR expr { emit("OR"); }
-   | expr XOR expr { emit("XOR"); }
-   | expr COMPARISON expr { emit("CMP %d", $2); }
-   | expr COMPARISON '(' select_stmt ')' { emit("CMPSELECT %d", $2); }
-   | expr COMPARISON ANY '(' select_stmt ')' { emit("CMPANYSELECT %d", $2); }
-   | expr COMPARISON SOME '(' select_stmt ')' { emit("CMPANYSELECT %d", $2); }
-   | expr COMPARISON ALL '(' select_stmt ')' { emit("CMPALLSELECT %d", $2); }
-   | expr '|' expr { emit("BITOR"); }
-   | expr '&' expr { emit("BITAND"); }
-   | expr '^' expr { emit("BITXOR"); }
-   | expr SHIFT expr { emit("SHIFT %s", $2==1?"left":"right"); }
-   | NOT expr { emit("NOT"); }
-   | '!' expr { emit("NOT"); }
+expr: expr '+' expr { sqlp_expr_op(SEO_ADD); }
+   | expr '-' expr { sqlp_expr_op(SEO_SUB); }
+   | expr '*' expr { sqlp_expr_op(SEO_MUL); }
+   | expr '/' expr { sqlp_expr_op(SEO_DIV); }
+   | expr '%' expr { sqlp_expr_op(SEO_MOD); }
+   | expr MOD expr { sqlp_expr_op(SEO_MOD); }
+   | '-' expr %prec UMINUS { sqlp_expr_op(SEO_NEG); }
+   | expr ANDOP expr { sqlp_expr_op(SEO_AND); }
+   | expr OR expr { sqlp_expr_op(SEO_OR); }
+   | expr XOR expr { sqlp_expr_op(SEO_XOR); }
+   | expr COMPARISON expr { sqlp_expr_cmp($2); }
+   | expr COMPARISON '(' select_stmt ')' { sqlp_expr_cmp_sel(0, $2); }
+   | expr COMPARISON ANY '(' select_stmt ')' { sqlp_expr_cmp_sel(1, $2); }
+   | expr COMPARISON SOME '(' select_stmt ')' { sqlp_expr_cmp_sel(2, $2); }
+   | expr COMPARISON ALL '(' select_stmt ')' { sqlp_expr_cmp_sel(3, $2); }
+   | expr '|' expr { sqlp_expr_op(SEO_BITOR); }
+   | expr '&' expr { sqlp_expr_op(SEO_BITAND); }
+   | expr '^' expr { sqlp_expr_op(SEO_BITXOR); }
+   | expr SHIFT expr { sqlp_expr_op($2 == 1 ? SEO_SHL : SEO_SHR); }
+   | NOT expr { sqlp_expr_op(SEO_NOT); }
+   | '!' expr { sqlp_expr_op(SEO_NOT); }
    | USERVAR ASSIGN expr { emit("ASSIGN @%s", $1); free($1); }
    ;    
 
-expr:  expr IS NULLX     { emit("ISNULL"); }
-   |   expr IS NOT NULLX { emit("ISNULL"); emit("NOT"); }
-   |   expr IS BOOL      { emit("ISBOOL %d", $3); }
-   |   expr IS NOT BOOL  { emit("ISBOOL %d", $4); emit("NOT"); }
+expr:  expr IS NULLX     { sqlp_expr_op(SEO_IS_NULL); }
+   |   expr IS NOT NULLX { sqlp_expr_op(SEO_IS_NULL); sqlp_expr_op(SEO_NOT); }
+   |   expr IS BOOL      { sqlp_expr_is_bool($3); }
+   |   expr IS NOT BOOL  { sqlp_expr_is_bool($4); sqlp_expr_op(SEO_NOT); }
    ;
 
-expr: expr BETWEEN expr AND expr %prec BETWEEN { emit("BETWEEN"); }
+expr: expr BETWEEN expr AND expr %prec BETWEEN { sqlp_expr_op(SEO_BETWEEN); }
    ;
 
 
@@ -902,11 +902,11 @@ opt_val_list: /* nil */ { $$ = 0 }
    | val_list
    ;
 
-expr: expr IN '(' val_list ')'       { emit("ISIN %d", $4); }
-   | expr NOT IN '(' val_list ')'    { emit("ISIN %d", $5); emit("NOT"); }
-   | expr IN '(' select_stmt ')'     { emit("INSELECT"); }
-   | expr NOT IN '(' select_stmt ')' { emit("INSELECT"); emit("NOT"); }
-   | EXISTS '(' select_stmt ')'      { emit("EXISTS"); if($1)emit("NOT"); }
+expr: expr IN '(' val_list ')'       { sqlp_expr_is_in($4); }
+   | expr NOT IN '(' val_list ')'    { sqlp_expr_is_in($5); sqlp_expr_op(SEO_NOT); }
+   | expr IN '(' select_stmt ')'     { sqlp_expr_op(SEO_IN_SELECT); }
+   | expr NOT IN '(' select_stmt ')' { sqlp_expr_op(SEO_IN_SELECT); sqlp_expr_op(SEO_NOT); }
+   | EXISTS '(' select_stmt ')'      { sqlp_expr_op(SEO_EXISTS); if($1)sqlp_expr_op(SEO_NOT); }
    ;
 
 expr: NAME '(' opt_val_list ')' {  emit("CALL %d %s", $3, $1); free($1); }
@@ -953,12 +953,12 @@ case_list: WHEN expr THEN expr     { $$ = 1; }
          | case_list WHEN expr THEN expr { $$ = $1+1; } 
    ;
 
-expr: expr LIKE expr { emit("LIKE"); }
-   | expr NOT LIKE expr { emit("LIKE"); emit("NOT"); }
+expr: expr LIKE expr { sqlp_expr_op(SEO_LIKE); }
+   | expr NOT LIKE expr { sqlp_expr_op(SEO_LIKE); sqlp_expr_op(SEO_NOT); }
    ;
 
-expr: expr REGEXP expr { emit("REGEXP"); }
-   | expr NOT REGEXP expr { emit("REGEXP"); emit("NOT"); }
+expr: expr REGEXP expr { sqlp_expr_op(SEO_REGEX); }
+   | expr NOT REGEXP expr { sqlp_expr_op(SEO_REGEX); sqlp_expr_op(SEO_NOT); }
    ;
 
 expr: CURRENT_TIMESTAMP { emit("NOW") };
