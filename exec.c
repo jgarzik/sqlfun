@@ -40,6 +40,7 @@ static const char *op_names[] = {
 	[SEO_IN_SELECT]	= "SEO_IN_SELECT",
 	[SEO_LIKE]	= "SEO_LIKE",
 	[SEO_REGEX]	= "SEO_REGEX",
+	[SEO_STRTOBIN]	= "SEO_STRTOBIN",
 };
 
 void sqlp_alias(const char *alias)
@@ -55,9 +56,24 @@ void sqlp_assign(const char *db_name, const char *name)
 	       name);
 }
 
+void sqlp_assign_at(const char *name)
+{
+	printf("exec ASSIGN-AT %s\n", name);
+}
+
 void sqlp_bool(int val)
 {
 	printf("exec BOOL %d\n", val);
+}
+
+void sqlp_case(int n_list, int have_else)
+{
+	printf("exec CASE %d %d\n", n_list, have_else);
+}
+
+void sqlp_caseval(int n_list, int have_else)
+{
+	printf("exec CASEVAL %d %d\n", n_list, have_else);
 }
 
 void sqlp_col_attr(enum sqlp_col_attribs attr)
@@ -128,6 +144,11 @@ void sqlp_column(const char *name)
 void sqlp_create_db(int if_ne, const char *name)
 {
 	printf("exec CREATE-DB %d %s\n", if_ne, name);
+}
+
+void sqlp_create_sel(int ignore_replace)
+{
+	printf("exec CREATE-SELECT %d\n", ignore_replace);
 }
 
 void sqlp_create_tbl(int temp, int if_n_exists, int n_cols,
@@ -215,6 +236,21 @@ void sqlp_float(float val)
 	printf("exec FLOAT %g\n", val);
 }
 
+void sqlp_group_by_list(int n_list, int opts)
+{
+	printf("exec GROUPBY-LIST %d %d\n", n_list, opts);
+}
+
+void sqlp_group_by(int opts)
+{
+	printf("exec GROUPBY %d\n", opts);
+}
+
+void sqlp_having(void)
+{
+	printf("exec HAVING\n");
+}
+
 void sqlp_index(const char *name)
 {
 	printf("exec INDEX %s\n", name);
@@ -255,6 +291,11 @@ void sqlp_insert_sel(int opts, const char *tbl_name)
 	printf("exec INSERT-SEL %d %s\n", opts, tbl_name);
 }
 
+void sqlp_into(int n_cols)
+{
+	printf("exec INTO %d\n", n_cols);
+}
+
 void sqlp_join(int opts)
 {
 	printf("exec JOIN %d\n", opts);
@@ -270,14 +311,29 @@ void sqlp_join_using(int n_cols)
 	printf("exec JOIN-USING %d\n", n_cols);
 }
 
+void sqlp_limit(int two_expr)
+{
+	printf("exec LIMIT %d\n", two_expr);
+}
+
 void sqlp_name(const char *name)
 {
 	printf("exec NAME %s\n", name);
 }
 
+void sqlp_now(void)
+{
+	printf("exec NOW\n");
+}
+
 void sqlp_number(int val)
 {
 	printf("exec INT/NUMBER %d\n", val);
+}
+
+void sqlp_order_by(int n_list)
+{
+	printf("exec ORDER-BY %d\n", n_list);
 }
 
 void sqlp_replace_assn(int opts, int n_assn, const char *name)
@@ -308,6 +364,11 @@ void sqlp_select_nodata(int opts, int n_expr)
 void sqlp_select_all(void)
 {
 	printf("exec SELECT-ALL\n");
+}
+
+void sqlp_set(const char *name)
+{
+	printf("exec SET %s\n", name);
 }
 
 void sqlp_start_col(void)
@@ -341,6 +402,11 @@ void sqlp_table(const char *db_name, const char *name)
 	       db_name ? db_name : "",
 	       db_name ? "." : "",
 	       name);
+}
+
+void sqlp_table_refs(int n_refs)
+{
+	printf("exec TABLE-REFERENCES %d\n", n_refs);
 }
 
 void sqlp_update(int opts, int n_tbl_ref, int n_assn)

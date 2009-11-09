@@ -364,13 +364,13 @@ opt_where: /* nil */
 
 opt_groupby: /* nil */ 
    | GROUP BY groupby_list opt_with_rollup
-                             { emit("GROUPBYLIST %d %d", $3, $4); }
+                             { sqlp_group_by_list($3, $4); }
 ;
 
 groupby_list: expr opt_asc_desc
-                             { emit("GROUPBY %d",  $2); $$ = 1; }
+                             { sqlp_group_by($2); $$ = 1; }
    | groupby_list ',' expr opt_asc_desc
-                             { emit("GROUPBY %d",  $4); $$ = $1 + 1; }
+                             { sqlp_group_by($4); $$ = $1 + 1; }
    ;
 
 opt_asc_desc: /* nil */ { $$ = 0; }
@@ -382,17 +382,17 @@ opt_with_rollup: /* nil */  { $$ = 0; }
    | WITH ROLLUP  { $$ = 1; }
    ;
 
-opt_having: /* nil */ | HAVING expr { emit("HAVING"); };
+opt_having: /* nil */ | HAVING expr { sqlp_having(); };
 
-opt_orderby: /* nil */ | ORDER BY groupby_list { emit("ORDERBY %d", $3); }
+opt_orderby: /* nil */ | ORDER BY groupby_list { sqlp_order_by($3); }
    ;
 
-opt_limit: /* nil */ | LIMIT expr { emit("LIMIT 1"); }
-  | LIMIT expr ',' expr             { emit("LIMIT 2"); }
+opt_limit: /* nil */ | LIMIT expr { sqlp_limit(0); }
+  | LIMIT expr ',' expr             { sqlp_limit(1); }
   ; 
 
 opt_into_list: /* nil */ 
-   | INTO column_list { emit("INTO %d", $2); }
+   | INTO column_list { sqlp_into($2); }
    ;
 
 column_list: NAME          { sqlp_column($1); free($1); $$ = 1; }
@@ -434,7 +434,7 @@ table_factor:
   | NAME '.' NAME opt_as_alias index_hint { sqlp_table($1, $3);
                                free($1); free($3); }
   | table_subquery opt_as NAME { sqlp_subquery_as($3); free($3); }
-  | '(' table_references ')' { emit("TABLEREFERENCES %d", $2); }
+  | '(' table_references ')' { sqlp_table_refs($2); }
   ;
 
 opt_as: AS 
@@ -805,7 +805,7 @@ enum_list: STRING { sqlp_enum_val($1); free($1); $$ = 1; }
    | enum_list ',' STRING { sqlp_enum_val($3); free($3); $$ = $1 + 1; }
    ;
 
-create_select_statement: opt_ignore_replace opt_as select_stmt { emit("CREATESELECT %d", $1) }
+create_select_statement: opt_ignore_replace opt_as select_stmt { sqlp_create_sel($1) }
    ;
 
 opt_ignore_replace: /* nil */ { $$ = 0; }
@@ -845,8 +845,8 @@ set_list: set_expr | set_list ',' set_expr ;
 
 set_expr:
 USERVAR COMPARISON expr { if ($2 != 4) { lyyerror(@2,"bad set to @%s", $1); YYERROR; }
-		 emit("SET %s", $1); free($1); }
-    | USERVAR ASSIGN expr { emit("SET %s", $1); free($1); }
+		 sqlp_set($1); free($1); }
+    | USERVAR ASSIGN expr { sqlp_set($1); free($1); }
     ;
 
    /**** expressions ****/
@@ -881,7 +881,7 @@ expr: expr '+' expr { sqlp_expr_op(SEO_ADD); }
    | expr SHIFT expr { sqlp_expr_op($2 == 1 ? SEO_SHL : SEO_SHR); }
    | NOT expr { sqlp_expr_op(SEO_NOT); }
    | '!' expr { sqlp_expr_op(SEO_NOT); }
-   | USERVAR ASSIGN expr { emit("ASSIGN @%s", $1); free($1); }
+   | USERVAR ASSIGN expr { sqlp_assign_at($1); free($1); }
    ;    
 
 expr:  expr IS NULLX     { sqlp_expr_op(SEO_IS_NULL); }
@@ -943,10 +943,10 @@ interval_exp: INTERVAL expr DAY_HOUR { emit("NUMBER 1"); }
    | INTERVAL expr HOUR_SECOND { emit("NUMBER 9"); }
    ;
 
-expr: CASE expr case_list END           { emit("CASEVAL %d 0", $3); }
-   |  CASE expr case_list ELSE expr END { emit("CASEVAL %d 1", $3); }
-   |  CASE case_list END                { emit("CASE %d 0", $2); }
-   |  CASE case_list ELSE expr END      { emit("CASE %d 1", $2); }
+expr: CASE expr case_list END           { sqlp_caseval($3, 0); }
+   |  CASE expr case_list ELSE expr END { sqlp_caseval($3, 1); }
+   |  CASE case_list END                { sqlp_case($2, 0); }
+   |  CASE case_list ELSE expr END      { sqlp_case($2, 1); }
    ;
 
 case_list: WHEN expr THEN expr     { $$ = 1; }
@@ -961,12 +961,12 @@ expr: expr REGEXP expr { sqlp_expr_op(SEO_REGEX); }
    | expr NOT REGEXP expr { sqlp_expr_op(SEO_REGEX); sqlp_expr_op(SEO_NOT); }
    ;
 
-expr: CURRENT_TIMESTAMP { emit("NOW") };
-   | CURRENT_DATE	{ emit("NOW") };
-   | CURRENT_TIME	{ emit("NOW") };
+expr: CURRENT_TIMESTAMP { sqlp_now(); };
+   | CURRENT_DATE	{ sqlp_now(); };
+   | CURRENT_TIME	{ sqlp_now(); };
    ;
 
-expr: BINARY expr %prec UMINUS { emit("STRTOBIN"); }
+expr: BINARY expr %prec UMINUS { sqlp_expr_op(SEO_STRTOBIN); }
    ;
 
 %%

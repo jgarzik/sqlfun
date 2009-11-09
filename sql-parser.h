@@ -37,11 +37,15 @@ enum sqlp_expr_ops {
 	SEO_IN_SELECT	= 20,
 	SEO_LIKE	= 21,
 	SEO_REGEX	= 22,
+	SEO_STRTOBIN	= 23,
 };
 
 extern void sqlp_alias(const char *alias);
 extern void sqlp_assign(const char *db_name, const char *name);
+extern void sqlp_assign_at(const char *name);
 extern void sqlp_bool(int val);
+extern void sqlp_case(int n_list, int have_else);
+extern void sqlp_caseval(int n_list, int have_else);
 extern void sqlp_col_attr(enum sqlp_col_attribs attr);
 extern void sqlp_col_attr_uniq(int n_cols);
 extern void sqlp_col_attr_comm(const char *comm);
@@ -60,6 +64,7 @@ extern void sqlp_create_tbl(int temp, int if_n_exists, int n_cols,
 			    const char *db_name, const char *name);
 extern void sqlp_create_tbl_sel(int temp, int if_n_exists, int n_cols,
 			    const char *db_name, const char *name);
+extern void sqlp_create_sel(int ignore_replace);
 extern void sqlp_def_col(int flags, const char *name);
 extern void sqlp_delete(int opts, const char *name);
 extern void sqlp_delete_multi(int opts, int n_del, int n_tbl_ref);
@@ -73,6 +78,9 @@ extern void sqlp_expr_is_bool(int val);
 extern void sqlp_expr_is_in(int val);
 extern void sqlp_fieldname(const char *db_name, const char *name);
 extern void sqlp_float(float val);
+extern void sqlp_group_by_list(int n_list, int opts);
+extern void sqlp_group_by(int opts);
+extern void sqlp_having(void);
 extern void sqlp_index(const char *name);
 extern void sqlp_index_hint(int n_indexed, int opts);
 extern void sqlp_ins_cols(int n_cols);
@@ -81,23 +89,29 @@ extern void sqlp_ins_dup_update(int n_assn);
 extern void sqlp_insert(int opts, int n_vals, const char *tbl_name);
 extern void sqlp_insert_assn(int opts, int n_assn, const char *tbl_name);
 extern void sqlp_insert_sel(int opts, const char *tbl_name);
+extern void sqlp_into(int n_cols);
 extern void sqlp_join(int opts);
 extern void sqlp_join_expr(void);
 extern void sqlp_join_using(int n_cols);
+extern void sqlp_limit(int two_expr);
 extern void sqlp_name(const char *name);
+extern void sqlp_now(void);
 extern void sqlp_number(int val);
+extern void sqlp_order_by(int n_list);
 extern void sqlp_replace_assn(int opts, int n_assn, const char *name);
 extern void sqlp_replace_vals(int opts, int n_vals, const char *name);
 extern void sqlp_replace_sel(int opts, const char *name);
 extern void sqlp_select(int opts, int n_expr, int n_tbl_ref);
 extern void sqlp_select_nodata(int opts, int n_expr);
 extern void sqlp_select_all(void);
+extern void sqlp_set(const char *name);
 extern void sqlp_start_col(void);
 extern void sqlp_string(const char *str);
 extern void sqlp_stmt(void);
 extern void sqlp_subquery(void);
 extern void sqlp_subquery_as(const char *name);
 extern void sqlp_table(const char *db_name, const char *name);
+extern void sqlp_table_refs(int n_refs);
 extern void sqlp_update(int opts, int n_tbl_ref, int n_assn);
 extern void sqlp_uservar(const char *str);
 extern void sqlp_values(int n_vals);
