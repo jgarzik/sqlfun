@@ -735,18 +735,18 @@ create_definition: { sqlp_start_col(); } NAME data_type column_atts
     ;
 
 column_atts: /* nil */ { $$ = 0; }
-    | column_atts NOT NULLX             { emit("ATTR NOTNULL"); $$ = $1 + 1; }
+    | column_atts NOT NULLX             { sqlp_col_attr(SCA_NOTNULL); $$ = $1 + 1; }
     | column_atts NULLX
-    | column_atts DEFAULT STRING        { emit("ATTR DEFAULT STRING %s", $3); free($3); $$ = $1 + 1; }
-    | column_atts DEFAULT INTNUM        { emit("ATTR DEFAULT NUMBER %d", $3); $$ = $1 + 1; }
-    | column_atts DEFAULT APPROXNUM     { emit("ATTR DEFAULT FLOAT %g", $3); $$ = $1 + 1; }
-    | column_atts DEFAULT BOOL          { emit("ATTR DEFAULT BOOL %d", $3); $$ = $1 + 1; }
-    | column_atts AUTO_INCREMENT        { emit("ATTR AUTOINC"); $$ = $1 + 1; }
-    | column_atts UNIQUE '(' column_list ')' { emit("ATTR UNIQUEKEY %d", $4); $$ = $1 + 1; }
-    | column_atts UNIQUE KEY { emit("ATTR UNIQUEKEY"); $$ = $1 + 1; }
-    | column_atts PRIMARY KEY { emit("ATTR PRIKEY"); $$ = $1 + 1; }
-    | column_atts KEY { emit("ATTR PRIKEY"); $$ = $1 + 1; }
-    | column_atts COMMENT STRING { emit("ATTR COMMENT %s", $3); free($3); $$ = $1 + 1; }
+    | column_atts DEFAULT STRING        { sqlp_col_def_str($3); free($3); $$ = $1 + 1; }
+    | column_atts DEFAULT INTNUM        { sqlp_col_def_num($3); $$ = $1 + 1; }
+    | column_atts DEFAULT APPROXNUM     { sqlp_col_def_float($3); $$ = $1 + 1; }
+    | column_atts DEFAULT BOOL          { sqlp_col_def_bool($3); $$ = $1 + 1; }
+    | column_atts AUTO_INCREMENT        { sqlp_col_attr(SCA_AUTOINC); $$ = $1 + 1; }
+    | column_atts UNIQUE '(' column_list ')' { sqlp_col_attr_uniq($4); $$ = $1 + 1; }
+    | column_atts UNIQUE KEY { sqlp_col_attr_uniq(0); $$ = $1 + 1; }
+    | column_atts PRIMARY KEY { sqlp_col_attr(SCA_PRIMARY_KEY); $$ = $1 + 1; }
+    | column_atts KEY { sqlp_col_attr(SCA_PRIMARY_KEY); $$ = $1 + 1; }
+    | column_atts COMMENT STRING { sqlp_col_attr_comm($3); free($3); $$ = $1 + 1; }
     ;
 
 opt_length: /* nil */ { $$ = 0; }
@@ -764,8 +764,8 @@ opt_uz: /* nil */ { $$ = 0; }
    ;
 
 opt_csc: /* nil */
-   | opt_csc CHAR SET STRING { emit("COLCHARSET %s", $4); free($4); }
-   | opt_csc COLLATE STRING { emit("COLCOLLATE %s", $3); free($3); }
+   | opt_csc CHAR SET STRING { sqlp_col_charset($4); free($4); }
+   | opt_csc COLLATE STRING { sqlp_col_collate($3); free($3); }
    ;
 
 data_type:
@@ -801,8 +801,8 @@ data_type:
    | SET '(' enum_list ')' opt_csc { $$ = 210000 + $3; }
    ;
 
-enum_list: STRING { emit("ENUMVAL %s", $1); free($1); $$ = 1; }
-   | enum_list ',' STRING { emit("ENUMVAL %s", $3); free($3); $$ = $1 + 1; }
+enum_list: STRING { sqlp_enum_val($1); free($1); $$ = 1; }
+   | enum_list ',' STRING { sqlp_enum_val($3); free($3); $$ = $1 + 1; }
    ;
 
 create_select_statement: opt_ignore_replace opt_as select_stmt { emit("CREATESELECT %d", $1) }
