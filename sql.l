@@ -19,7 +19,7 @@
 #include "sql.tab.h"
 #include "sql-parser-state.h"
 
-void yyerror(YYLTYPE *, struct psql_state *pstate, char *s, ...);
+void yyerror(YYLTYPE *, struct psql_state *pstate, const char *s, ...);
 
 int oldstate;
 

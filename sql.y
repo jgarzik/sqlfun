@@ -340,8 +340,8 @@ typedef struct YYLTYPE {
 %start stmt_list
 
 %{
-void yyerror(YYLTYPE *, struct psql_state *pstate, char *s, ...);
-void lyyerror(YYLTYPE t, char *s, ...);
+void yyerror(YYLTYPE *, struct psql_state *pstate, const char *s, ...);
+void lyyerror(YYLTYPE t, const char *s, ...);
  %}
   /* free discarded tokens */
 %destructor { printf ("free at %d %s\n",@$.first_line, $$); free($$); } <strval>
@@ -981,7 +981,7 @@ expr: BINARY expr %prec UMINUS { sqlp_expr_op(SEO_STRTOBIN); }
 %%
 
 void
-yyerror(YYLTYPE *t, struct psql_state *pstate, char *s, ...)
+yyerror(YYLTYPE *t, struct psql_state *pstate, const char *s, ...)
 {
   va_list ap;
   va_start(ap, s);
@@ -995,7 +995,7 @@ yyerror(YYLTYPE *t, struct psql_state *pstate, char *s, ...)
 }
 
 void
-lyyerror(YYLTYPE t, char *s, ...)
+lyyerror(YYLTYPE t, const char *s, ...)
 {
   va_list ap;
   va_start(ap, s);
