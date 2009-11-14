@@ -1,8 +1,15 @@
-/* Companion source code for "flex & bison", published by O'Reilly
+/*
+ * Originally from:
+ *
+ * Companion source code for "flex & bison", published by O'Reilly
  * Media, ISBN 978-0-596-15597-1
  * Copyright (c) 2009, Taughannock Networks. All rights reserved.
  * See the README file for license conditions and contact info.
- * $Header: /home/johnl/flnb/code/sql/RCS/lpmysql.l,v 2.1 2009/11/08 02:53:39 johnl Exp $
+ *
+ * Book URL, which describes the lexer's construction (chapter 4):
+ * http://oreilly.com/catalog/9780596155988
+ *
+ * Software URL: ftp://ftp.iecc.com/pub/file/flexbison.zip
  */
 /*
  * Scanner for mysql subset
