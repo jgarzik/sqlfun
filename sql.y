@@ -563,7 +563,7 @@ stmt: insert_stmt { sqlp_stmt(); }
 insert_stmt: INSERT insert_opts opt_into NAME
      opt_col_names
      VALUES insert_vals_list
-     opt_ondupupdate { sqlp_insert($2, $7, $4); free($4) }
+     opt_ondupupdate { sqlp_insert($2, $7, $4); free($4); }
    ;
 
 opt_ondupupdate: /* nil */
@@ -597,7 +597,7 @@ insert_vals:
 insert_stmt: INSERT insert_opts opt_into NAME
     SET insert_asgn_list
     opt_ondupupdate
-     { sqlp_insert_assn($2, $6, $4); free($4) }
+     { sqlp_insert_assn($2, $6, $4); free($4); }
    ;
 
 insert_stmt: INSERT insert_opts opt_into NAME opt_col_names
@@ -627,13 +627,13 @@ stmt: replace_stmt { sqlp_stmt(); }
 replace_stmt: REPLACE insert_opts opt_into NAME
      opt_col_names
      VALUES insert_vals_list
-     opt_ondupupdate { sqlp_replace_vals($2, $7, $4); free($4) }
+     opt_ondupupdate { sqlp_replace_vals($2, $7, $4); free($4); }
    ;
 
 replace_stmt: REPLACE insert_opts opt_into NAME
     SET insert_asgn_list
     opt_ondupupdate
-     { sqlp_replace_assn($2, $6, $4); free($4) }
+     { sqlp_replace_assn($2, $6, $4); free($4); }
    ;
 
 replace_stmt: REPLACE insert_opts opt_into NAME opt_col_names
@@ -821,7 +821,7 @@ enum_list: STRING { sqlp_enum_val($1); free($1); $$ = 1; }
    | enum_list ',' STRING { sqlp_enum_val($3); free($3); $$ = $1 + 1; }
    ;
 
-create_select_statement: opt_ignore_replace opt_as select_stmt { sqlp_create_sel($1) }
+create_select_statement: opt_ignore_replace opt_as select_stmt { sqlp_create_sel($1); }
    ;
 
 opt_ignore_replace: /* nil */ { $$ = 0; }
@@ -914,7 +914,7 @@ val_list: expr { $$ = 1; }
    | expr ',' val_list { $$ = 1 + $3; }
    ;
 
-opt_val_list: /* nil */ { $$ = 0 }
+opt_val_list: /* nil */ { $$ = 0; }
    | val_list
    ;
 
@@ -929,7 +929,7 @@ expr: NAME '(' opt_val_list ')' {  sqlp_call($3, $1); free($1); }
    ;
 
   /* functions with special syntax */
-expr: FCOUNT '(' '*' ')' { sqlp_call(0, "COUNTALL") }
+expr: FCOUNT '(' '*' ')' { sqlp_call(0, "COUNTALL"); }
    | FCOUNT '(' expr ')' { sqlp_call(1, "COUNT"); } 
 
 expr: FSUBSTRING '(' val_list ')' {  sqlp_call($3, "SUBSTR");}
