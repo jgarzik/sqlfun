@@ -16,8 +16,8 @@
  * With error reporting and recovery
  */
 
-%option noyywrap nodefault yylineno case-insensitive reentrant bison-bridge
-%option bison-locations
+%option noyywrap nodefault yylineno case-insensitive reentrant
+%option bison-bridge bison-locations
 %option header-file="sql.lex.h"
 
 %{
@@ -338,7 +338,7 @@ DATE_SUB/"(" { return FDATE_SUB; }
 	/* 
          * peek ahead and return function if name(
          */
-COUNT    { int c = input(pstate->scaninfo); unput(c);
+COUNT    { int c = input(pstate->scanner); unput(c);
            if(c == '(') return FCOUNT;
            yylval->strval = strdup(yytext);
            return NAME; }

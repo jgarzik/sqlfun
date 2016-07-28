@@ -2,7 +2,7 @@
 #define __SQL_PARSER_STATE__
 
 struct psql_state {
-	yyscan_t	scaninfo;
+	yyscan_t	scanner;
 };
 
 #endif /* __SQL_PARSER_STATE__ */

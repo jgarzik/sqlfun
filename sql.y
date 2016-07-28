@@ -12,9 +12,6 @@
  * Software URL: ftp://ftp.iecc.com/pub/file/flexbison.zip
  */
 
-%define api.pure
-%parse-param { struct psql_state *pstate }
-
 /*
  * Parser for mysql subset
  */
@@ -23,8 +20,12 @@
 #include <stdarg.h>
 #include <string.h>
 #include "sql-parser.h"
+%}
 
- %}
+%define api.pure full
+%locations
+%parse-param { yyscan_t scanner } { struct psql_state *pstate }
+%lex-param { yyscan_t scanner }
 
 %code requires {
 char *filename;
@@ -57,8 +58,14 @@ typedef struct YYLTYPE {
 	  (Current).filename  = NULL;					\
 	}								\
     while (0)
-}
 
+#ifndef YY_TYPEDEF_YY_SCANNER_T
+#define YY_TYPEDEF_YY_SCANNER_T
+typedef void* yyscan_t;
+#endif
+
+struct psql_state;
+}
 
 %union {
 	int intval;
@@ -70,7 +77,6 @@ typedef struct YYLTYPE {
 %{
 #include "sql.lex.h"
 #include "sql-parser-state.h"
-#define YYLEX_PARAM pstate->scaninfo
 %}
 	
 	/* names and literal values */
@@ -347,7 +353,7 @@ typedef struct YYLTYPE {
 %start stmt_list
 
 %{
-void yyerror(YYLTYPE *, struct psql_state *pstate, const char *s, ...);
+void yyerror(YYLTYPE *, yyscan_t scanner, struct psql_state *pstate, const char *s, ...);
 void lyyerror(YYLTYPE t, const char *s, ...);
  %}
   /* free discarded tokens */
@@ -988,7 +994,7 @@ expr: BINARY expr %prec UMINUS { sqlp_expr_op(SEO_STRTOBIN); }
 %%
 
 void
-yyerror(YYLTYPE *t, struct psql_state *pstate, const char *s, ...)
+yyerror(YYLTYPE *t, yyscan_t scanner, struct psql_state *pstate, const char *s, ...)
 {
   va_list ap;
   va_start(ap, s);
@@ -1025,7 +1031,7 @@ main(int ac, char **av)
   }
 
   memset(&pstate, 0, sizeof(pstate));
-  if (yylex_init_extra(&pstate, &pstate.scaninfo))
+  if (yylex_init_extra(&pstate, &pstate.scanner))
   	return 1;
 
   if(ac > 1) {
@@ -1039,9 +1045,9 @@ main(int ac, char **av)
     in_f = stdin;
   }
 
-  yyset_in(in_f, &pstate.scaninfo);
+  yyset_in(in_f, pstate.scanner);
 
-  if(!yyparse(&pstate))
+  if(!yyparse(pstate.scanner, &pstate))
     printf("SQL parse worked\n");
   else
     printf("SQL parse failed\n");
