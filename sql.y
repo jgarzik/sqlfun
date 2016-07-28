@@ -19,7 +19,6 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
-#include "sql-parser.h"
 %}
 
 %define api.pure full
@@ -76,7 +75,7 @@ struct psql_state;
 
 %{
 #include "sql.lex.h"
-#include "sql-parser-state.h"
+#include "sql-parser.h"
 %}
 	
 	/* names and literal values */

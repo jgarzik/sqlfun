@@ -34,3 +34,5 @@ clean:
 
 .SUFFIXES:	.l .y .c
 
+exec.o:	exec.c sql-parser.h
+

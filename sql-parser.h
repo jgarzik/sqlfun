@@ -52,6 +52,10 @@ enum sqlp_date_intervals {
 	SDI_HOUR_SECOND		= 8,
 };
 
+struct psql_state {
+	yyscan_t	scanner;
+};
+
 extern void sqlp_alias(const char *alias);
 extern void sqlp_assign(const char *db_name, const char *name);
 extern void sqlp_assign_at(const char *name);

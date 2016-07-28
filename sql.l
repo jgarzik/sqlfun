@@ -24,7 +24,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include "sql.tab.h"
-#include "sql-parser-state.h"
+#include "sql-parser.h"
 
 void yyerror(YYLTYPE *, struct psql_state *pstate, const char *s, ...);
 
