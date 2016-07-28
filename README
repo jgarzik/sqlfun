@@ -1,0 +1,6 @@
+
+An SQL parser, generated from Bison (Yacc) and Flex (Lex).
+
+Original version - most of the work - comes from John Levine's
+Flex & Bison book published by O'Reilley.
+
