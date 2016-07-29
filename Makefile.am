@@ -10,7 +10,9 @@ pkgconfig_DATA = libsqlpars.pc
 # TESTS = test/unitester
 
 # noinst_PROGRAMS = $(TESTS)
-EXTRA_DIST=sql.y sql.l
+EXTRA_DIST = sql.y sql.l \
+	test-ok.sh test-fail.sh \
+	fail1.sql ok1.sql
 
 sql_SOURCES = exec.c sql-parser.h
 nodist_sql_SOURCES = sql.c sql.tab.c sql.tab.h sql.lex.h
@@ -23,4 +25,6 @@ sql.tab.c sql.tab.h:   sql.y Makefile
 
 sql.c sql.lex.h: sql.l Makefile
 	${LEX} -o $@ $<
+
+TESTS = test-ok.sh test-fail.sh
 

@@ -1,6 +1,8 @@
 
 *.o
 *.output
+*.log
+*.trs
 
 Makefile
 Makefile.in
