@@ -23,7 +23,8 @@
 
 %define api.pure full
 %locations
-%parse-param { yyscan_t scanner } { struct psql_state *pstate }
+%parse-param { yyscan_t scanner }
+%parse-param { struct psql_state *pstate }
 %lex-param { yyscan_t scanner }
 
 %code requires {
