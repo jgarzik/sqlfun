@@ -1,5 +1,5 @@
 
-language: cpp
+language: c
 
 compiler:
   - clang
@@ -7,7 +7,7 @@ compiler:
 
 os:
   - linux
-  - osx
+#  - osx
 
 sudo: false
 
@@ -40,11 +40,11 @@ before_script:
   - if [ "$COVERAGE_STATS" = "true" ]; then COVERAGE_OPT="--enable-coverage"; fi
 
 script:
-  - if [ -n "$UNIVALUE_CONFIG" ]; then unset CC; unset CXX; fi
+  - if [ -n "$SQLPARS_CONFIG" ]; then unset CC; unset CXX; fi
   - OUTDIR=$BASE_OUTDIR/$TRAVIS_PULL_REQUEST/$TRAVIS_JOB_NUMBER-$HOST
-  - UNIVALUE_CONFIG_ALL="--prefix=$TRAVIS_BUILD_DIR/depends/$HOST --bindir=$OUTDIR/bin --libdir=$OUTDIR/lib"
-  - ./configure --cache-file=config.cache $COVERAGE_OPT $UNIVALUE_CONFIG_ALL $UNIVALUE_CONFIG || ( cat config.log && false)
-  - make -s $MAKEJOBS $GOAL || ( echo "Build failure. Verbose build follows." && make $GOAL ; false )
+  - SQLPARS_CONFIG_ALL="--prefix=$TRAVIS_BUILD_DIR/depends/$HOST --bindir=$OUTDIR/bin --libdir=$OUTDIR/lib"
+  - ./configure --cache-file=config.cache $COVERAGE_OPT $SQLPARS_CONFIG_ALL $SQLPARS_CONFIG || ( cat config.log && false)
+  - make -s $MAKEJOBS $GOAL || ( echo "Build failure. Verbose build follows." && make V=1 $GOAL ; false )
   - export LD_LIBRARY_PATH=$TRAVIS_BUILD_DIR/depends/$HOST/lib
   - if [ "$RUN_TESTS" = "true" ] || [ "$COVERAGE_STATS" = "true" ]; then make $MAKEJOBS distcheck; fi
 
