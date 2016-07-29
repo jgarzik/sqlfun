@@ -21,7 +21,7 @@
 #include <string.h>
 %}
 
-%define api.pure full
+%define api.pure
 %locations
 %parse-param { yyscan_t scanner }
 %parse-param { struct psql_state *pstate }
