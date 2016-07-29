@@ -2,10 +2,23 @@
 *.o
 *.output
 
+Makefile.in
+
 sql.tab.*
 sql.lex.h
 sql.c
 sql
 
-push
+libtool
+configure
+stamp-h1
+autom4te.cache/
+.deps/
+aclocal.m4
+config.log
+config.status
+
+libsqlpars-uninstalled.pc
+libsqlpars.pc
+sqlpars-config.h*
 

@@ -1,0 +1,10 @@
+prefix=@prefix@
+exec_prefix=@exec_prefix@
+libdir=@libdir@
+includedir=@includedir@
+
+Name: libsqlpars
+Description: libsqlpars, SQL parser library
+Version: @VERSION@
+Libs: -L${libdir} -lsqlpars
+Cflags: -I${includedir}
