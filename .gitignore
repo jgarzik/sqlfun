@@ -2,6 +2,7 @@
 *.o
 *.output
 
+Makefile
 Makefile.in
 
 sql.tab.*
