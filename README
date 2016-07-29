@@ -8,3 +8,10 @@ Example usage:
 
 	$ echo "SELECT a.name,b.address FROM people ORDER BY name;" | ./sql
 
+Standard GNU autotools building instructions:
+
+	$ ./autogen.sh
+	$ ./configure
+	$ make && make check
+	$ sudo make install
+
