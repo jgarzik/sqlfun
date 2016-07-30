@@ -7,7 +7,7 @@ compiler:
 
 os:
   - linux
-#  - osx
+  - osx
 
 sudo: false
 
@@ -31,6 +31,9 @@ before_install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew update; fi
 
 install:
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install bison; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install flex; fi
+  - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew install libtool; fi
   - if [ "$TRAVIS_OS_NAME" = "osx" ] && [ "$COVERAGE_STATS" = "true" ]; then brew install lcov; fi
   - if [ "$COVERAGE_STATS" = "true" ]; then gem install coveralls-lcov; fi
 
