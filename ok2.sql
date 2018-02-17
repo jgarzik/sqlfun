@@ -1,0 +1,1 @@
+select [ab] from d;

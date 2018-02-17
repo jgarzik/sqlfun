@@ -26,7 +26,7 @@
 #include "sql.tab.h"
 #include "sql-parser.h"
 
-void yyerror(YYLTYPE *, struct psql_state *pstate, const char *s, ...);
+void yyerror(YYLTYPE *, yyscan_t scanner, struct psql_state *pstate, const char *s, ...);
 
 int oldstate;
 
@@ -297,8 +297,8 @@ FALSE	{ yylval->intval = 0; return BOOL; }
 '(\\.|''|[^'\n])*'	|
 \"(\\.|\"\"|[^"\n])*\"  { yylval->strval = strdup(yytext); return STRING; }
 
-'(\\.|[^'\n])*$	        { yyerror(yylloc, pstate, "Unterminated string %s", yytext); }
-\"(\\.|[^"\n])*$	{ yyerror(yylloc, pstate, "Unterminated string %s", yytext); }
+'(\\.|[^'\n])*$	        { yyerror(yylloc, pstate->scanner, pstate, "Unterminated string %s", yytext); }
+\"(\\.|[^"\n])*$	{ yyerror(yylloc, pstate->scanner, pstate, "Unterminated string %s", yytext); }
 
    /* hex strings */
 X'[0-9A-F]+' |  
@@ -349,7 +349,7 @@ COUNT    { int c = input(pstate->scanner); unput(c);
                           yylval->strval[yyleng-2] = 0;
                           return NAME; }
 
-`[^`\n]*$               { yyerror(yylloc, pstate, "unterminated quoted name %s", yytext); }
+`[^`\n]*$               { yyerror(yylloc, pstate->scanner, pstate, "unterminated quoted name %s", yytext); }
 
 	/* user variables */
 @[0-9a-z_.$]+ |
@@ -357,9 +357,9 @@ COUNT    { int c = input(pstate->scanner); unput(c);
 @`[^`\n]+` |
 @'[^'\n]+' { yylval->strval = strdup(yytext+1); return USERVAR; }
 
-@\"[^"\n]*$ { yyerror(yylloc, pstate, "unterminated quoted user variable %s", yytext); }
-@`[^`\n]*$ { yyerror(yylloc, pstate, "unterminated quoted user variable %s", yytext); }
-@'[^'\n]*$ { yyerror(yylloc, pstate, "unterminated quoted user variable %s", yytext); }
+@\"[^"\n]*$ { yyerror(yylloc, pstate->scanner, pstate, "unterminated quoted user variable %s", yytext); }
+@`[^`\n]*$ { yyerror(yylloc, pstate->scanner, pstate, "unterminated quoted user variable %s", yytext); }
+@'[^'\n]*$ { yyerror(yylloc, pstate->scanner, pstate, "unterminated quoted user variable %s", yytext); }
 
 
 ":="     { return ASSIGN; }
@@ -372,12 +372,12 @@ COUNT    { int c = input(pstate->scanner); unput(c);
 <COMMENT>"*/"   { BEGIN oldstate; }
 <COMMENT>.   ;
 <COMMENT>\n     { yycolumn = 1; }
-<COMMENT><<EOF>> { yyerror(yylloc, pstate, "unclosed comment"); }
+<COMMENT><<EOF>> { yyerror(yylloc, pstate->scanner, pstate, "unclosed comment"); }
 
 	        /* everything else */
 [ \t]           /* white space */
 \n              { yycolumn = 1; }
-.               { yyerror(yylloc, pstate, "mystery character '%c'", *yytext); }
+.               { yyerror(yylloc, pstate->scanner, pstate, "mystery character '%c'", *yytext); }
 
 %%
 
