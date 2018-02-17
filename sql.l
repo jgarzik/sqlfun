@@ -345,6 +345,7 @@ COUNT    { int c = input(pstate->scanner); unput(c);
 
 [A-Za-z][A-Za-z0-9_]*	{ yylval->strval = strdup(yytext);
                           return NAME; }
+\[(\\.|[^\]\n])*\] |
 `[^`/\\.\n]+`           { yylval->strval = strdup(yytext+1);
                           yylval->strval[yyleng-2] = 0;
                           return NAME; }

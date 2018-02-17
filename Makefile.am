@@ -17,7 +17,8 @@ EXTRA_DIST = sql.y sql.l \
 	fail3.sql \
 	fail4.sql \
 	ok1.sql \
-	ok2.sql
+	ok2.sql \
+	ok3.sql
 
 sql_SOURCES = exec.c sql-parser.h
 nodist_sql_SOURCES = sql.c sql.tab.c sql.tab.h sql.lex.h
