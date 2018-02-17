@@ -14,7 +14,7 @@ m4_define([libsqlpars_age], [m4_eval(libsqlpars_binary_age - libsqlpars_interfac
 m4_define([libsqlpars_version], [libsqlpars_major_version().libsqlpars_minor_version().libsqlpars_micro_version()libsqlpars_extraversion()])
 
 
-AC_INIT([sqlpars], [0.0.1],
+AC_INIT([sqlpars], [0.0.2],
         [http://github.com/jgarzik/sqlpars/])
 
 dnl make the compilation flags quiet unless V=1 is used
