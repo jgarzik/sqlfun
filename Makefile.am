@@ -18,9 +18,12 @@ EXTRA_DIST = sql.y sql.l \
 	fail4.sql \
 	ok1.sql \
 	ok2.sql \
-	ok3.sql
+	ok3.sql \
+	tst-create-db.sql \
+	tst-create-table1.sql
 
 sql_SOURCES = exec.c sql-parser.h
+sql_LDADD = @JANSSON_LIBS@
 nodist_sql_SOURCES = sql.c sql.tab.c sql.tab.h sql.lex.h
 
 BUILT_SOURCES = $(nodist_sql_SOURCES)

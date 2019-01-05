@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <jansson.h>
 #include "sql.tab.h"
 #include "sql-parser.h"
 
@@ -56,6 +57,30 @@ static const char *interval_names[] = {
 	[SDI_HOUR_SECOND]	= "SDI_HOUR_SECOND",
 };
 
+static void print_and_free(json_t *jval)
+{
+	json_dumpf(jval, stdout, JSON_COMPACT | JSON_SORT_KEYS);
+	printf("\n");
+	json_decref(jval);
+}
+
+static void opout(const char *opname)
+{
+	json_t *obj = json_object();
+	json_object_set_new(obj, "op", json_string(opname));
+	print_and_free(obj);
+}
+
+static void opstr(const char *opname,
+		  const char *str_name,
+		  const char *str_val)
+{
+	json_t *obj = json_object();
+	json_object_set_new(obj, "op", json_string(opname));
+	json_object_set_new(obj, str_name, json_string(str_val));
+	print_and_free(obj);
+}
+
 void sqlp_alias(struct psql_state *pstate, const char *alias)
 {
 	printf("exec ALIAS %s\n", alias);
@@ -108,7 +133,7 @@ void sqlp_caseval(struct psql_state *pstate, int n_list, int have_else)
 
 void sqlp_col_attr(struct psql_state *pstate, enum sqlp_col_attribs attr)
 {
-	printf("exec ATTR %s\n", attr_names[attr]);
+	opstr("ATTR", "type", attr_names[attr]);
 }
 
 void sqlp_col_attr_uniq(struct psql_state *pstate, int n_cols)
@@ -133,7 +158,7 @@ void sqlp_col_collate(struct psql_state *pstate, const char *collate)
 
 void sqlp_col_def_str(struct psql_state *pstate, const char *str)
 {
-	printf("exec ATTR DEFAULT-STR %s\n", str);
+	opstr("ATTR", "DEFAULT-STR", str);
 }
 
 void sqlp_col_def_num(struct psql_state *pstate, int num)
@@ -173,7 +198,11 @@ void sqlp_column(struct psql_state *pstate, const char *name)
 
 void sqlp_create_db(struct psql_state *pstate, int if_ne, const char *name)
 {
-	printf("exec CREATE-DB %d %s\n", if_ne, name);
+	json_t *obj = json_object();
+	json_object_set_new(obj, "op", json_string("CREATE-DB"));
+	json_object_set_new(obj, "if_ne", json_boolean(if_ne));
+	json_object_set_new(obj, "name", json_string(name));
+	print_and_free(obj);
 }
 
 void sqlp_create_sel(struct psql_state *pstate, int ignore_replace)
@@ -184,11 +213,14 @@ void sqlp_create_sel(struct psql_state *pstate, int ignore_replace)
 void sqlp_create_tbl(struct psql_state *pstate, int temp, int if_n_exists, int n_cols,
 		     const char *db_name, const char *name)
 {
-	printf("exec CREATE-TABLE %d %d %d %s%s%s\n",
-	       temp, if_n_exists, n_cols,
-	       db_name ? db_name : "",
-	       db_name ? "." : "",
-	       name);
+	json_t *obj = json_object();
+	json_object_set_new(obj, "op", json_string("CREATE-TABLE"));
+	json_object_set_new(obj, "temp", json_boolean(temp));
+	json_object_set_new(obj, "if_n_exists", json_boolean(if_n_exists));
+	json_object_set_new(obj, "n_cols", json_integer(n_cols));
+	json_object_set_new(obj, "db_name", json_string(db_name ? db_name : ""));
+	json_object_set_new(obj, "name", json_string(name));
+	print_and_free(obj);
 }
 
 void sqlp_create_tbl_sel(struct psql_state *pstate, int temp, int if_n_exists, int n_cols,
@@ -208,7 +240,11 @@ void sqlp_date_interval(struct psql_state *pstate, enum sqlp_date_intervals inte
 
 void sqlp_def_col(struct psql_state *pstate, int flags, const char *name)
 {
-	printf("exec DEFINE-COL %d %s\n", flags, name);
+	json_t *obj = json_object();
+	json_object_set_new(obj, "op", json_string("DEFINE-COL"));
+	json_object_set_new(obj, "flags", json_integer(flags));
+	json_object_set_new(obj, "name", json_string(name));
+	print_and_free(obj);
 }
 
 void sqlp_delete(struct psql_state *pstate, int opts, const char *name)
@@ -283,7 +319,7 @@ void sqlp_group_by(struct psql_state *pstate, int opts)
 
 void sqlp_having(struct psql_state *pstate)
 {
-	printf("exec HAVING\n");
+	opout("HAVING");
 }
 
 void sqlp_index(struct psql_state *pstate, const char *name)
@@ -303,7 +339,7 @@ void sqlp_ins_cols(struct psql_state *pstate, int n_cols)
 
 void sqlp_ins_default(struct psql_state *pstate)
 {
-	printf("exec INSERT-DEFAULT\n");
+	opout("INSERT-DEFAULT");
 }
 
 void sqlp_ins_dup_update(struct psql_state *pstate, int n_assn)
@@ -338,7 +374,7 @@ void sqlp_join(struct psql_state *pstate, int opts)
 
 void sqlp_join_expr(struct psql_state *pstate)
 {
-	printf("exec JOIN-ON EXPR\n");
+	opout("JOIN-ON EXPR");
 }
 
 void sqlp_join_using(struct psql_state *pstate, int n_cols)
@@ -358,7 +394,7 @@ void sqlp_name(struct psql_state *pstate, const char *name)
 
 void sqlp_now(struct psql_state *pstate)
 {
-	printf("exec NOW\n");
+	opout("NOW");
 }
 
 void sqlp_number(struct psql_state *pstate, int val)
@@ -398,7 +434,7 @@ void sqlp_select_nodata(struct psql_state *pstate, int opts, int n_expr)
 
 void sqlp_select_all(struct psql_state *pstate)
 {
-	printf("exec SELECT-ALL\n");
+	opout("SELECT-ALL");
 }
 
 void sqlp_set(struct psql_state *pstate, const char *name)
@@ -408,12 +444,12 @@ void sqlp_set(struct psql_state *pstate, const char *name)
 
 void sqlp_start_col(struct psql_state *pstate)
 {
-	printf("exec START-COL\n");
+	opout("START-COL");
 }
 
 void sqlp_stmt(struct psql_state *pstate)
 {
-	printf("exec STMT\n");
+	opout("STMT");
 }
 
 void sqlp_string(struct psql_state *pstate, const char *str)
@@ -423,7 +459,7 @@ void sqlp_string(struct psql_state *pstate, const char *str)
 
 void sqlp_subquery(struct psql_state *pstate)
 {
-	printf("exec SUBQUERY\n");
+	opout("SUBQUERY");
 }
 
 void sqlp_subquery_as(struct psql_state *pstate, const char *name)
@@ -461,6 +497,6 @@ void sqlp_values(struct psql_state *pstate, int n_vals)
 
 void sqlp_where(struct psql_state *pstate)
 {
-	printf("exec WHERE\n");
+	opout("WHERE");
 }
 

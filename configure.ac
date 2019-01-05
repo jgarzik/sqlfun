@@ -81,11 +81,14 @@ case $build in
   ;;
 esac
 
+AC_CHECK_LIB(jansson, json_loads, JANSSON_LIBS=-ljansson)
+
 AC_CONFIG_FILES([
     Makefile
     libsqlpars.pc
     libsqlpars-uninstalled.pc])
 
+AC_SUBST(JANSSON_LIBS)
 AC_SUBST(LIBTOOL_APP_LDFLAGS)
 AC_SUBST(BUILD_EXEEXT)
 AC_OUTPUT

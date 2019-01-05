@@ -1048,10 +1048,10 @@ main(int ac, char **av)
   yyset_in(in_f, pstate.scanner);
 
   if(!yyparse(pstate.scanner, &pstate)) {
-    printf("SQL parse worked\n");
+    printf("{\"result\":true}\n");
     return 0;
   } else {
-    printf("SQL parse failed\n");
+    printf("{\"result\":false}\n");
     return 1;
   }
 } /* main */
