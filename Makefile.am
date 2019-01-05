@@ -13,12 +13,18 @@ pkgconfig_DATA = libsqlpars.pc
 EXTRA_DIST = sql.y sql.l \
 	test-ok.sh test-fail.sh \
 	fail1.sql \
-	xfail2.sql \
 	fail3.sql \
 	fail4.sql \
+	fail5.sql \
+	xfail2.sql \
 	ok1.sql \
 	ok2.sql \
 	ok3.sql \
+	ok4.sql \
+	ok5.sql \
+	ok6.sql \
+	ok7.sql \
+	ok8.sql \
 	tst-create-db.sql \
 	tst-create-table1.sql
 

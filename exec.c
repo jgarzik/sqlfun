@@ -99,6 +99,17 @@ static void opii(const char *op_name,
 	print_and_free(obj);
 }
 
+static void opib(const char *op_name,
+		 const char *i1_name, int i1_val,
+		 const char *bool_name, int bool_val)
+{
+	json_t *obj = json_object();
+	json_object_set_new(obj, "op", json_string(op_name));
+	json_object_set_new(obj, i1_name, json_integer(i1_val));
+	json_object_set_new(obj, bool_name, json_boolean(bool_val));
+	print_and_free(obj);
+}
+
 static void strout(const char *str_name, const char *str_val)
 {
 	json_t *obj = json_object();
@@ -160,7 +171,7 @@ void sqlp_assign_at(struct psql_state *pstate, const char *name)
 
 void sqlp_bool(struct psql_state *pstate, int val)
 {
-	intout("BOOL", val);
+	boolout("BOOL", val);
 }
 
 void sqlp_call(struct psql_state *pstate, int n_args, const char *name)
@@ -188,12 +199,12 @@ void sqlp_call_trim_opts(struct psql_state *pstate, int trim_opts)
 
 void sqlp_case(struct psql_state *pstate, int n_list, int have_else)
 {
-	opii("CASE", "n_list", n_list, "have_else", have_else);
+	opib("CASE", "n_list", n_list, "have_else", have_else);
 }
 
 void sqlp_caseval(struct psql_state *pstate, int n_list, int have_else)
 {
-	opii("CASEVAL", "n_list", n_list, "have_else", have_else);
+	opib("CASEVAL", "n_list", n_list, "have_else", have_else);
 }
 
 void sqlp_col_attr(struct psql_state *pstate, enum sqlp_col_attribs attr)
@@ -346,7 +357,7 @@ void sqlp_drop_db(struct psql_state *pstate, int if_exists, const char *name)
 {
 	json_t *obj = json_object();
 	json_object_set_new(obj, "op", json_string("DROP-DB"));
-	json_object_set_new(obj, "if_exists", json_integer(if_exists));
+	json_object_set_new(obj, "if_exists", json_boolean(if_exists));
 	json_object_set_new(obj, "name", json_string(name));
 	print_and_free(obj);
 }
@@ -355,8 +366,8 @@ void sqlp_drop_table(struct psql_state *pstate, int temp, int if_exists, int n_t
 {
 	json_t *obj = json_object();
 	json_object_set_new(obj, "op", json_string("DROP-TABLE"));
-	json_object_set_new(obj, "temp", json_integer(temp));
-	json_object_set_new(obj, "if_exists", json_integer(if_exists));
+	json_object_set_new(obj, "temp", json_boolean(temp));
+	json_object_set_new(obj, "if_exists", json_boolean(if_exists));
 	json_object_set_new(obj, "n_tables", json_integer(n_tables));
 	print_and_free(obj);
 }
