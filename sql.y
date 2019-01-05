@@ -30,39 +30,7 @@
 %code requires {
 char *filename;
 
-typedef struct YYLTYPE {
-  int first_line;
-  int first_column;
-  int last_line;
-  int last_column;
-  char *filename;
-} YYLTYPE;
-# define YYLTYPE_IS_DECLARED 1
-
-# define YYLLOC_DEFAULT(Current, Rhs, N)				\
-    do									\
-      if (N)                                                            \
-	{								\
-	  (Current).first_line   = YYRHSLOC (Rhs, 1).first_line;	\
-	  (Current).first_column = YYRHSLOC (Rhs, 1).first_column;	\
-	  (Current).last_line    = YYRHSLOC (Rhs, N).last_line;		\
-	  (Current).last_column  = YYRHSLOC (Rhs, N).last_column;	\
-	  (Current).filename     = YYRHSLOC (Rhs, 1).filename;	        \
-	}								\
-      else								\
-	{ /* empty RHS */						\
-	  (Current).first_line   = (Current).last_line   =		\
-	    YYRHSLOC (Rhs, 0).last_line;				\
-	  (Current).first_column = (Current).last_column =		\
-	    YYRHSLOC (Rhs, 0).last_column;				\
-	  (Current).filename  = NULL;					\
-	}								\
-    while (0)
-
-#ifndef YY_TYPEDEF_YY_SCANNER_T
-#define YY_TYPEDEF_YY_SCANNER_T
-typedef void* yyscan_t;
-#endif
+#include "yyl.h"
 
 struct psql_state;
 }
@@ -1020,42 +988,3 @@ lyyerror(YYLTYPE t, const char *s, ...)
   fprintf(stderr, "\n");
 }
 
-int
-main(int ac, char **av)
-{
-  FILE *in_f;
-  struct psql_state pstate;
-
-  if(ac > 1 && !strcmp(av[1], "-d")) {
-    yydebug = 1; ac--; av++;
-  }
-
-  memset(&pstate, 0, sizeof(pstate));
-  if (yylex_init_extra(&pstate, &pstate.scanner))
-  	return 1;
-
-  if(ac > 1) {
-    if((in_f = fopen(av[1], "r")) == NULL) {
-      perror(av[1]);
-      exit(1);
-    }
-    filename = av[1];
-  } else {
-    filename = "(stdin)";
-    in_f = stdin;
-  }
-
-  yyset_in(in_f, pstate.scanner);
-
-  int res = yyparse(pstate.scanner, &pstate);
-
-  yylex_destroy(pstate.scanner);
-
-  if (!res) {
-    printf("{\"result\":true}\n");
-    return 0;
-  } else {
-    printf("{\"result\":false}\n");
-    return 1;
-  }
-} /* main */

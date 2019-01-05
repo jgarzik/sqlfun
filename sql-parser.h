@@ -1,6 +1,8 @@
 #ifndef __SQL_PARSER_H__
 #define __SQL_PARSER_H__
 
+#include <stdio.h>
+
 enum sqlp_col_attribs {
 	SCA_NOTNULL		= (1 << 0),
 	SCA_DEF_STR		= (1 << 1),
@@ -55,6 +57,11 @@ enum sqlp_date_intervals {
 struct psql_state {
 	yyscan_t	scanner;
 };
+
+extern struct psql_state *psql_new(void);
+extern void psql_free(struct psql_state *st);
+extern void psql_set_input(struct psql_state *st, FILE *f);
+extern int psql_parse(struct psql_state *st);
 
 extern void sqlp_alias(struct psql_state *pstate, const char *alias);
 extern void sqlp_assign(struct psql_state *pstate, const char *db_name, const char *name);

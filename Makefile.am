@@ -29,7 +29,7 @@ EXTRA_DIST = sql.y sql.l \
 	ok9.sql \
 	ok10.sql
 
-sql_SOURCES = exec.c sql-parser.h
+sql_SOURCES = exec.c lib.c main.c sql-parser.h yyl.h
 sql_LDADD = @JANSSON_LIBS@
 nodist_sql_SOURCES = sql.c sql.tab.c sql.tab.h sql.lex.h
 
