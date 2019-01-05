@@ -25,6 +25,7 @@ addons:
     packages:
       - pkg-config
       - lcov
+      - libjansson-dev
 
 before_install:
   - if [ "$TRAVIS_OS_NAME" = "osx" ]; then brew update; fi
