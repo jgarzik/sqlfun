@@ -67,6 +67,39 @@ function parseRecordStream(recs)
 			}
 			stk.push(objTable);
 
+		} else if (current.op && current.op == 'CREATE-DB') {
+			var objDb = {
+				verb: 'CREATE_DATABASE',
+				name: current.name,
+				if_ne: current.if_ne,
+			};
+			stk.push(objDb);
+
+		} else if (current.op && current.op == 'SELECT') {
+			var objSelect = {
+				verb: 'SELECT',
+				opts: current.opts,
+				n_expr: current.n_expr,
+				n_tbl_ref: current.n_tbl_ref,
+				tables: [],
+				exprs: [],
+			};
+			var wantTabs = objSelect.n_tbl_ref;
+			while (wantTabs-- > 0) {
+				const tab = stk.pop();
+				assert(tab !== undefined);
+
+				objSelect.tables.push(tab.name);
+			}
+			var wantExpr = objSelect.n_expr;
+			while (wantExpr-- > 0) {
+				const an_expr = stk.pop();
+				assert(an_expr !== undefined);
+
+				objSelect.exprs.push(an_expr);
+			}
+			stk.push(objSelect);
+
 		} else if (current.op && current.op == 'STMT') {
 			const stmt = stk.pop();
 			assert(stk.length === 0);
@@ -90,5 +123,5 @@ const recs = getRecordStream(lines);
 
 const stmt = parseRecordStream(recs);
 
-console.log(JSON.stringify(stmt, null, 2) + "\n");
+console.log(JSON.stringify(stmt, null, 2));
 
