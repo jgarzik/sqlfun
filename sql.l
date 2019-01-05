@@ -295,7 +295,10 @@ FALSE	{ yylval->intval = 0; return BOOL; }
    /* strings */
 
 '(\\.|''|[^'\n])*'	|
-\"(\\.|\"\"|[^"\n])*\"  { yylval->strval = strdup(yytext); return STRING; }
+\"(\\.|\"\"|[^"\n])*\"  {
+	size_t duplen = strlen(yytext) - 2;
+	yylval->strval = strndup(&yytext[1], duplen);
+	return STRING; }
 
 '(\\.|[^'\n])*$	        { yyerror(yylloc, pstate->scanner, pstate, "Unterminated string %s", yytext); }
 \"(\\.|[^"\n])*$	{ yyerror(yylloc, pstate->scanner, pstate, "Unterminated string %s", yytext); }
