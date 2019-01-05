@@ -55,10 +55,9 @@ function parseRecordStream(recs)
 				name: current.name,
 				temp: current.temp,
 				if_n_exists: current.if_n_exists,
-				n_cols: current.n_cols,
 				columns: [],
 			};
-			var wantCols = objTable.n_cols;
+			var wantCols = current.n_cols;
 			while (wantCols-- > 0) {
 				const col = stk.pop();
 				assert(col !== undefined);
@@ -71,12 +70,11 @@ function parseRecordStream(recs)
 			var objTab = {
 				verb: 'DROP_TABLE',
 				temp: current.temp,
-				n_tables: current.n_tables,
 				if_exists: current.if_exists,
 				tables: [],
 			};
 
-			var wantTabs = objTab.n_tables;
+			var wantTabs = current.n_tables;
 			while (wantTabs-- > 0) {
 				const tab = stk.pop();
 				assert(tab !== undefined);
@@ -90,12 +88,11 @@ function parseRecordStream(recs)
 			var objInsert = {
 				verb: 'INSERT',
 				tbl_name: current.tbl_name,
-				n_vals: current.n_vals,
 				opts: current.opts,
 				values: [],
 			};
 
-			var wantVals = objInsert.n_vals;
+			var wantVals = current.n_vals;
 			while (wantVals-- > 0) {
 				const val = stk.pop();
 				assert(val !== undefined);
@@ -125,19 +122,17 @@ function parseRecordStream(recs)
 			var objSelect = {
 				verb: 'SELECT',
 				opts: current.opts,
-				n_expr: current.n_expr,
-				n_tbl_ref: current.n_tbl_ref,
 				tables: [],
 				exprs: [],
 			};
-			var wantTabs = objSelect.n_tbl_ref;
+			var wantTabs = current.n_tbl_ref;
 			while (wantTabs-- > 0) {
 				const tab = stk.pop();
 				assert(tab !== undefined);
 
 				objSelect.tables.push(tab.name);
 			}
-			var wantExpr = objSelect.n_expr;
+			var wantExpr = current.n_expr;
 			while (wantExpr-- > 0) {
 				const an_expr = stk.pop();
 				assert(an_expr !== undefined);
