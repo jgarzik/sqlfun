@@ -27,6 +27,7 @@ EXTRA_DIST = sql.y sql.l \
 	ok7.sql \
 	ok8.sql \
 	ok9.sql \
+	ok10.sql \
 	tst-create-db.sql \
 	tst-create-table1.sql
 
