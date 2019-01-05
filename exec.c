@@ -57,6 +57,16 @@ static const char *interval_names[] = {
 	[SDI_HOUR_SECOND]	= "SDI_HOUR_SECOND",
 };
 
+static const char *cmp_names[] = {
+	[4] = "EQ",
+	[12] = "<=>",
+	[6] = "GE",
+	[2] = "GT",
+	[5] = "LE",
+	[1] = "LT",
+	[3] = "<>",
+};
+
 static void print_and_free(json_t *jval)
 {
 	json_dumpf(jval, stdout, JSON_COMPACT | JSON_SORT_KEYS);
@@ -358,7 +368,7 @@ void sqlp_enum_val(struct psql_state *pstate, const char *val)
 
 void sqlp_expr_cmp(struct psql_state *pstate, int comp)
 {
-	intout("CMP", comp);
+	strout("CMP", cmp_names[comp]);
 }
 
 void sqlp_expr_is_bool(struct psql_state *pstate, int val)
@@ -378,7 +388,11 @@ void sqlp_expr_op(struct psql_state *pstate, enum sqlp_expr_ops op)
 
 void sqlp_expr_cmp_sel(struct psql_state *pstate, int sel_type, int comp)
 {
-	opii("CMP-SELECT", "sel_type", sel_type, "comp", comp);
+	json_t *obj = json_object();
+	json_object_set_new(obj, "op", json_string("CMP-SELECT"));
+	json_object_set_new(obj, "sel_type", json_integer(sel_type));
+	json_object_set_new(obj, "comp", json_string(cmp_names[comp]));
+	print_and_free(obj);
 }
 
 void sqlp_fieldname(struct psql_state *pstate, const char *db_name, const char *name)
