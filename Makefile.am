@@ -11,6 +11,7 @@ pkgconfig_DATA = libsqlpars.pc
 
 # noinst_PROGRAMS = $(TESTS)
 EXTRA_DIST = sql.y sql.l \
+	pscan.js \
 	test-ok.sh test-fail.sh \
 	fail1.sql \
 	fail3.sql \
@@ -25,6 +26,7 @@ EXTRA_DIST = sql.y sql.l \
 	ok6.sql \
 	ok7.sql \
 	ok8.sql \
+	ok9.sql \
 	tst-create-db.sql \
 	tst-create-table1.sql
 
