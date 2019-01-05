@@ -334,6 +334,11 @@ void sqlp_def_col(struct psql_state *pstate, int flags, const char *name)
 	print_and_free(obj);
 }
 
+void sqlp_data_type(struct psql_state *pstate, const char *type_name)
+{
+	strout("type", type_name);
+}
+
 void sqlp_delete(struct psql_state *pstate, int opts, const char *name)
 {
 	json_t *obj = json_object();

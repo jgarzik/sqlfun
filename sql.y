@@ -759,36 +759,36 @@ opt_csc: /* nil */
    ;
 
 data_type:
-     BIT opt_length { $$ = 10000 + $2; }
-   | TINYINT opt_length opt_uz { $$ = 10000 + $2; }
-   | SMALLINT opt_length opt_uz { $$ = 20000 + $2 + $3; }
-   | MEDIUMINT opt_length opt_uz { $$ = 30000 + $2 + $3; }
-   | INT opt_length opt_uz { $$ = 40000 + $2 + $3; }
-   | INTEGER opt_length opt_uz { $$ = 50000 + $2 + $3; }
-   | BIGINT opt_length opt_uz { $$ = 60000 + $2 + $3; }
-   | REAL opt_length opt_uz { $$ = 70000 + $2 + $3; }
-   | DOUBLE opt_length opt_uz { $$ = 80000 + $2 + $3; }
-   | FLOAT opt_length opt_uz { $$ = 90000 + $2 + $3; }
-   | DECIMAL opt_length opt_uz { $$ = 110000 + $2 + $3; }
-   | DATE { $$ = 100001; }
-   | TIME { $$ = 100002; }
-   | TIMESTAMP { $$ = 100003; }
-   | DATETIME { $$ = 100004; }
-   | YEAR { $$ = 100005; }
-   | CHAR opt_length opt_csc { $$ = 120000 + $2; }
-   | VARCHAR '(' INTNUM ')' opt_csc { $$ = 130000 + $3; }
-   | BINARY opt_length { $$ = 140000 + $2; }
-   | VARBINARY '(' INTNUM ')' { $$ = 150000 + $3; }
-   | TINYBLOB { $$ = 160001; }
-   | BLOB { $$ = 160002; }
-   | MEDIUMBLOB { $$ = 160003; }
-   | LONGBLOB { $$ = 160004; }
-   | TINYTEXT opt_binary opt_csc { $$ = 170000 + $2; }
-   | TEXT opt_binary opt_csc { $$ = 171000 + $2; }
-   | MEDIUMTEXT opt_binary opt_csc { $$ = 172000 + $2; }
-   | LONGTEXT opt_binary opt_csc { $$ = 173000 + $2; }
-   | ENUM '(' enum_list ')' opt_csc { $$ = 200000 + $3; }
-   | SET '(' enum_list ')' opt_csc { $$ = 210000 + $3; }
+     BIT opt_length { sqlp_data_type(pstate, "BIT"); $$ = 10000 + $2; }
+   | TINYINT opt_length opt_uz { sqlp_data_type(pstate, "TINYINT"); $$ = 10000 + $2; }
+   | SMALLINT opt_length opt_uz { sqlp_data_type(pstate, "SMALLINT"); $$ = 20000 + $2 + $3; }
+   | MEDIUMINT opt_length opt_uz { sqlp_data_type(pstate, "MEDIUMINT"); $$ = 30000 + $2 + $3; }
+   | INT opt_length opt_uz { sqlp_data_type(pstate, "INT"); $$ = 40000 + $2 + $3; }
+   | INTEGER opt_length opt_uz { sqlp_data_type(pstate, "INTEGER"); $$ = 50000 + $2 + $3; }
+   | BIGINT opt_length opt_uz { sqlp_data_type(pstate, "BIGINT"); $$ = 60000 + $2 + $3; }
+   | REAL opt_length opt_uz { sqlp_data_type(pstate, "REAL"); $$ = 70000 + $2 + $3; }
+   | DOUBLE opt_length opt_uz { sqlp_data_type(pstate, "DOUBLE"); $$ = 80000 + $2 + $3; }
+   | FLOAT opt_length opt_uz { sqlp_data_type(pstate, "FLOAT"); $$ = 90000 + $2 + $3; }
+   | DECIMAL opt_length opt_uz { sqlp_data_type(pstate, "DECIMAL"); $$ = 110000 + $2 + $3; }
+   | DATE { sqlp_data_type(pstate, "DATE"); $$ = 100001; }
+   | TIME { sqlp_data_type(pstate, "TIME"); $$ = 100002; }
+   | TIMESTAMP { sqlp_data_type(pstate, "TIMESTAMP"); $$ = 100003; }
+   | DATETIME { sqlp_data_type(pstate, "DATETIME"); $$ = 100004; }
+   | YEAR { sqlp_data_type(pstate, "YEAR"); $$ = 100005; }
+   | CHAR opt_length opt_csc { sqlp_data_type(pstate, "CHAR"); $$ = 120000 + $2; }
+   | VARCHAR '(' INTNUM ')' opt_csc { sqlp_data_type(pstate, "VARCHAR"); $$ = 130000 + $3; }
+   | BINARY opt_length { sqlp_data_type(pstate, "BINARY"); $$ = 140000 + $2; }
+   | VARBINARY '(' INTNUM ')' { sqlp_data_type(pstate, "VARBINARY"); $$ = 150000 + $3; }
+   | TINYBLOB { sqlp_data_type(pstate, "TINYBLOB"); $$ = 160001; }
+   | BLOB { sqlp_data_type(pstate, "BLOB"); $$ = 160002; }
+   | MEDIUMBLOB { sqlp_data_type(pstate, "MEDIUMBLOB"); $$ = 160003; }
+   | LONGBLOB { sqlp_data_type(pstate, "LONGBLOB"); $$ = 160004; }
+   | TINYTEXT opt_binary opt_csc { sqlp_data_type(pstate, "TINYTEXT"); $$ = 170000 + $2; }
+   | TEXT opt_binary opt_csc { sqlp_data_type(pstate, "TEXT"); $$ = 171000 + $2; }
+   | MEDIUMTEXT opt_binary opt_csc { sqlp_data_type(pstate, "MEDIUMTEXT"); $$ = 172000 + $2; }
+   | LONGTEXT opt_binary opt_csc { sqlp_data_type(pstate, "LONGTEXT"); $$ = 173000 + $2; }
+   | ENUM '(' enum_list ')' opt_csc { sqlp_data_type(pstate, "ENUM"); $$ = 200000 + $3; }
+   | SET '(' enum_list ')' opt_csc { sqlp_data_type(pstate, "SET"); $$ = 210000 + $3; }
    ;
 
 enum_list: STRING { sqlp_enum_val(pstate, $1); free($1); $$ = 1; }

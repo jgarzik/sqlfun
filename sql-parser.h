@@ -93,6 +93,7 @@ extern void sqlp_create_tbl_sel(struct psql_state *pstate, int temp, int if_n_ex
 extern void sqlp_create_sel(struct psql_state *pstate, int ignore_replace);
 extern void sqlp_date_interval(struct psql_state *pstate, enum sqlp_date_intervals interval);
 extern void sqlp_def_col(struct psql_state *pstate, int flags, const char *name);
+extern void sqlp_data_type(struct psql_state *pstate, const char *type_name);
 extern void sqlp_delete(struct psql_state *pstate, int opts, const char *name);
 extern void sqlp_delete_multi(struct psql_state *pstate, int opts, int n_del, int n_tbl_ref);
 extern void sqlp_drop_db(struct psql_state *pstate, int if_exists, const char *name);

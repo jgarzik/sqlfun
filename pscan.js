@@ -41,6 +41,8 @@ function parseRecordStream(recs)
 				const rec = stk.pop();
 				if ('attr' in rec)
 					objColumn.attr.push(rec);
+				else if ('type' in rec)
+					objColumn.type = rec.type;
 				else if (rec.op && rec.op == 'START-COL')
 					break;
 				else {
