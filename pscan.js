@@ -75,6 +75,14 @@ function parseRecordStream(recs)
 			};
 			stk.push(objDb);
 
+		} else if (current.op && current.op == 'DROP-DB') {
+			var objDb = {
+				verb: 'DROP_DATABASE',
+				name: current.name,
+				if_exists: current.if_exists,
+			};
+			stk.push(objDb);
+
 		} else if (current.op && current.op == 'SELECT') {
 			var objSelect = {
 				verb: 'SELECT',
