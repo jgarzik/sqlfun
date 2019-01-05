@@ -1,3 +1,3 @@
 
-drop database if exists tester;
+drop database if exists testdb;
 

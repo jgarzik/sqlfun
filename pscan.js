@@ -67,6 +67,44 @@ function parseRecordStream(recs)
 			}
 			stk.push(objTable);
 
+		} else if (current.op && current.op == 'DROP-TABLE') {
+			var objTab = {
+				verb: 'DROP_TABLE',
+				temp: current.temp,
+				n_tables: current.n_tables,
+				if_exists: current.if_exists,
+				tables: [],
+			};
+
+			var wantTabs = objTab.n_tables;
+			while (wantTabs-- > 0) {
+				const tab = stk.pop();
+				assert(tab !== undefined);
+
+				objTab.tables.push(tab.name);
+			}
+
+			stk.push(objTab);
+
+		} else if (current.op && current.op == 'INSERT') {
+			var objInsert = {
+				verb: 'INSERT',
+				tbl_name: current.tbl_name,
+				n_vals: current.n_vals,
+				opts: current.opts,
+				values: [],
+			};
+
+			var wantVals = objInsert.n_vals;
+			while (wantVals-- > 0) {
+				const val = stk.pop();
+				assert(val !== undefined);
+
+				objInsert.values.push(val);
+			}
+
+			stk.push(objInsert);
+
 		} else if (current.op && current.op == 'CREATE-DB') {
 			var objDb = {
 				verb: 'CREATE_DATABASE',
@@ -113,6 +151,35 @@ function parseRecordStream(recs)
 			assert(stk.length === 0);
 
 			ret = stmt;
+
+		} else if ('INT/NUMBER' in current) {
+			const objVal = {
+				type: 'number',
+				val: current['INT/NUMBER'],
+			};
+			stk.push(objVal);
+
+		} else if ('STRING' in current) {
+			const objVal = {
+				type: 'string',
+				val: current.STRING,
+			};
+			stk.push(objVal);
+
+		} else if ('VALUES' in current) {
+			const objVal = {
+				type: 'value_list',
+				values: [],
+			};
+			var wantVals = current.VALUES;
+			while (wantVals-- > 0) {
+				const val = stk.pop();
+				assert(val !== undefined);
+
+				objVal.values.unshift(val);
+			}
+			stk.push(objVal);
+
 		} else if ('result' in current) {
 			// EOF; do nothing
 

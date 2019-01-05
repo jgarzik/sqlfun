@@ -1,1 +1,1 @@
-select count(*) from badgers where honey > 
+select count(*) from badgers where honey >
