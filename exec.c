@@ -78,6 +78,17 @@ static void intout(const char *int_name, int int_val)
 	print_and_free(obj);
 }
 
+static void opii(const char *op_name,
+		 const char *i1_name, int i1_val,
+		 const char *i2_name, int i2_val)
+{
+	json_t *obj = json_object();
+	json_object_set_new(obj, "op", json_string(op_name));
+	json_object_set_new(obj, i1_name, json_integer(i1_val));
+	json_object_set_new(obj, i2_name, json_integer(i2_val));
+	print_and_free(obj);
+}
+
 static void strout(const char *str_name, const char *str_val)
 {
 	json_t *obj = json_object();
@@ -127,7 +138,7 @@ void sqlp_assign(struct psql_state *pstate, const char *db_name, const char *nam
 {
 	json_t *obj = json_object();
 	json_object_set_new(obj, "op", json_string("ASSIGN"));
-	json_object_set_new(obj, "db_name", json_string(db_name ? db_name : ""));
+	json_object_set_new(obj, "db_name", json_string(db_name));
 	json_object_set_new(obj, "name", json_string(name));
 	print_and_free(obj);
 }
@@ -144,14 +155,20 @@ void sqlp_bool(struct psql_state *pstate, int val)
 
 void sqlp_call(struct psql_state *pstate, int n_args, const char *name)
 {
-	printf("exec CALL %d %s\n", n_args, name);
+	json_t *obj = json_object();
+	json_object_set_new(obj, "op", json_string("CALL"));
+	json_object_set_new(obj, "n_args", json_integer(n_args));
+	json_object_set_new(obj, "name", json_string(name));
+	print_and_free(obj);
 }
 
 void sqlp_call_date(struct psql_state *pstate, int n_args, enum sqlp_expr_ops op)
 {
-	printf("exec CALL %d DATE %s\n",
-	       n_args,
-	       op == SEO_ADD ? "ADD" : "SUB");
+	json_t *obj = json_object();
+	json_object_set_new(obj, "op", json_string("CALL"));
+	json_object_set_new(obj, "n_args", json_integer(n_args));
+	json_object_set_new(obj, "DATE", json_string(op_names[op]));
+	print_and_free(obj);
 }
 
 void sqlp_call_trim_opts(struct psql_state *pstate, int trim_opts)
@@ -161,12 +178,12 @@ void sqlp_call_trim_opts(struct psql_state *pstate, int trim_opts)
 
 void sqlp_case(struct psql_state *pstate, int n_list, int have_else)
 {
-	printf("exec CASE %d %d\n", n_list, have_else);
+	opii("CASE", "n_list", n_list, "have_else", have_else);
 }
 
 void sqlp_caseval(struct psql_state *pstate, int n_list, int have_else)
 {
-	printf("exec CASEVAL %d %d\n", n_list, have_else);
+	opii("CASEVAL", "n_list", n_list, "have_else", have_else);
 }
 
 void sqlp_col_attr(struct psql_state *pstate, enum sqlp_col_attribs attr)
@@ -207,7 +224,10 @@ void sqlp_col_def_num(struct psql_state *pstate, int num)
 
 void sqlp_col_def_float(struct psql_state *pstate, float num)
 {
-	printf("exec ATTR DEFAULT-FLOAT %g\n", num);
+	json_t *obj = json_object();
+	json_object_set_new(obj, "attr", json_string("SCA_DEF_FLOAT"));
+	json_object_set_new(obj, "val", json_real(num));
+	print_and_free(obj);
 }
 
 void sqlp_col_def_bool(struct psql_state *pstate, int bool_val)
@@ -261,7 +281,7 @@ void sqlp_create_tbl(struct psql_state *pstate, int temp, int if_n_exists, int n
 	json_object_set_new(obj, "temp", json_boolean(temp));
 	json_object_set_new(obj, "if_n_exists", json_boolean(if_n_exists));
 	json_object_set_new(obj, "n_cols", json_integer(n_cols));
-	json_object_set_new(obj, "db_name", json_string(db_name ? db_name : ""));
+	json_object_set_new(obj, "db_name", json_string(db_name));
 	json_object_set_new(obj, "name", json_string(name));
 	print_and_free(obj);
 }
@@ -269,11 +289,14 @@ void sqlp_create_tbl(struct psql_state *pstate, int temp, int if_n_exists, int n
 void sqlp_create_tbl_sel(struct psql_state *pstate, int temp, int if_n_exists, int n_cols,
 		     const char *db_name, const char *name)
 {
-	printf("exec CREATE-TABLE-SELECT %d %d %d %s%s%s\n",
-	       temp, if_n_exists, n_cols,
-	       db_name ? db_name : "",
-	       db_name ? "." : "",
-	       name);
+	json_t *obj = json_object();
+	json_object_set_new(obj, "op", json_string("CREATE-TABLE-SELECT"));
+	json_object_set_new(obj, "temp", json_boolean(temp));
+	json_object_set_new(obj, "if_n_exists", json_boolean(if_n_exists));
+	json_object_set_new(obj, "n_cols", json_integer(n_cols));
+	json_object_set_new(obj, "db_name", json_string(db_name));
+	json_object_set_new(obj, "name", json_string(name));
+	print_and_free(obj);
 }
 
 void sqlp_date_interval(struct psql_state *pstate, enum sqlp_date_intervals interval)
@@ -311,12 +334,21 @@ void sqlp_delete_multi(struct psql_state *pstate, int opts, int n_del, int n_tbl
 
 void sqlp_drop_db(struct psql_state *pstate, int if_exists, const char *name)
 {
-	printf("exec DROP-DB %d %s\n", if_exists, name);
+	json_t *obj = json_object();
+	json_object_set_new(obj, "op", json_string("DROP-DB"));
+	json_object_set_new(obj, "if_exists", json_integer(if_exists));
+	json_object_set_new(obj, "name", json_string(name));
+	print_and_free(obj);
 }
 
 void sqlp_drop_table(struct psql_state *pstate, int temp, int if_exists, int n_tables)
 {
-	printf("exec DROP-TABLE %d %d %d\n", temp, if_exists, n_tables);
+	json_t *obj = json_object();
+	json_object_set_new(obj, "op", json_string("DROP-TABLE"));
+	json_object_set_new(obj, "temp", json_integer(temp));
+	json_object_set_new(obj, "if_exists", json_integer(if_exists));
+	json_object_set_new(obj, "n_tables", json_integer(n_tables));
+	print_and_free(obj);
 }
 
 void sqlp_enum_val(struct psql_state *pstate, const char *val)
@@ -346,26 +378,28 @@ void sqlp_expr_op(struct psql_state *pstate, enum sqlp_expr_ops op)
 
 void sqlp_expr_cmp_sel(struct psql_state *pstate, int sel_type, int comp)
 {
-	printf("exec CMP-SELECT %d %d\n", sel_type, comp);
+	opii("CMP-SELECT", "sel_type", sel_type, "comp", comp);
 }
 
 void sqlp_fieldname(struct psql_state *pstate, const char *db_name, const char *name)
 {
 	json_t *obj = json_object();
 	json_object_set_new(obj, "op", json_string("FIELD-NAME"));
-	json_object_set_new(obj, "db_name", json_string(db_name ? db_name : ""));
+	json_object_set_new(obj, "db_name", json_string(db_name));
 	json_object_set_new(obj, "name", json_string(name));
 	print_and_free(obj);
 }
 
 void sqlp_float(struct psql_state *pstate, float val)
 {
-	printf("exec FLOAT %g\n", val);
+	json_t *obj = json_object();
+	json_object_set_new(obj, "FLOAT", json_real(val));
+	print_and_free(obj);
 }
 
 void sqlp_group_by_list(struct psql_state *pstate, int n_list, int opts)
 {
-	printf("exec GROUPBY-LIST %d %d\n", n_list, opts);
+	opii("GROUPBY-LIST", "n_list", n_list, "opts", opts);
 }
 
 void sqlp_group_by(struct psql_state *pstate, int opts)
@@ -385,7 +419,7 @@ void sqlp_index(struct psql_state *pstate, const char *name)
 
 void sqlp_index_hint(struct psql_state *pstate, int n_indexed, int opts)
 {
-	printf("exec INDEX-HINT %d %d\n", n_indexed, opts);
+	opii("INDEX-HINT", "n_indexed", n_indexed, "opts", opts);
 }
 
 void sqlp_ins_cols(struct psql_state *pstate, int n_cols)
@@ -405,17 +439,31 @@ void sqlp_ins_dup_update(struct psql_state *pstate, int n_assn)
 
 void sqlp_insert(struct psql_state *pstate, int opts, int n_vals, const char *tbl_name)
 {
-	printf("exec INSERT %d %d %s\n", opts, n_vals, tbl_name);
+	json_t *obj = json_object();
+	json_object_set_new(obj, "op", json_string("INSERT"));
+	json_object_set_new(obj, "opts", json_integer(opts));
+	json_object_set_new(obj, "n_vals", json_integer(n_vals));
+	json_object_set_new(obj, "tbl_name", json_string(tbl_name));
+	print_and_free(obj);
 }
 
 void sqlp_insert_assn(struct psql_state *pstate, int opts, int n_assn, const char *tbl_name)
 {
-	printf("exec INSERT-ASSN %d %d %s\n", opts, n_assn, tbl_name);
+	json_t *obj = json_object();
+	json_object_set_new(obj, "op", json_string("INSERT-ASSN"));
+	json_object_set_new(obj, "opts", json_integer(opts));
+	json_object_set_new(obj, "n_assn", json_integer(n_assn));
+	json_object_set_new(obj, "tbl_name", json_string(tbl_name));
+	print_and_free(obj);
 }
 
 void sqlp_insert_sel(struct psql_state *pstate, int opts, const char *tbl_name)
 {
-	printf("exec INSERT-SEL %d %s\n", opts, tbl_name);
+	json_t *obj = json_object();
+	json_object_set_new(obj, "op", json_string("INSERT-SEL"));
+	json_object_set_new(obj, "opts", json_integer(opts));
+	json_object_set_new(obj, "tbl_name", json_string(tbl_name));
+	print_and_free(obj);
 }
 
 void sqlp_into(struct psql_state *pstate, int n_cols)
@@ -465,17 +513,31 @@ void sqlp_order_by(struct psql_state *pstate, int n_list)
 
 void sqlp_replace_assn(struct psql_state *pstate, int opts, int n_assn, const char *name)
 {
-	printf("exec REPLACE-ASSN %d %d %s\n", opts, n_assn, name);
+	json_t *obj = json_object();
+	json_object_set_new(obj, "op", json_string("REPLACE-ASSN"));
+	json_object_set_new(obj, "opts", json_integer(opts));
+	json_object_set_new(obj, "n_assn", json_integer(n_assn));
+	json_object_set_new(obj, "name", json_string(name));
+	print_and_free(obj);
 }
 
 void sqlp_replace_vals(struct psql_state *pstate, int opts, int n_vals, const char *name)
 {
-	printf("exec REPLACE-VALS %d %d %s\n", opts, n_vals, name);
+	json_t *obj = json_object();
+	json_object_set_new(obj, "op", json_string("REPLACE-VALS"));
+	json_object_set_new(obj, "opts", json_integer(opts));
+	json_object_set_new(obj, "n_vals", json_integer(n_vals));
+	json_object_set_new(obj, "name", json_string(name));
+	print_and_free(obj);
 }
 
 void sqlp_replace_sel(struct psql_state *pstate, int opts, const char *name)
 {
-	printf("exec REPLACE-SEL %d %s\n", opts, name);
+	json_t *obj = json_object();
+	json_object_set_new(obj, "op", json_string("REPLACE-SEL"));
+	json_object_set_new(obj, "opts", json_integer(opts));
+	json_object_set_new(obj, "name", json_string(name));
+	print_and_free(obj);
 }
 
 void sqlp_select(struct psql_state *pstate, int opts, int n_expr, int n_tbl_ref)
@@ -536,7 +598,7 @@ void sqlp_table(struct psql_state *pstate, const char *db_name, const char *name
 {
 	json_t *obj = json_object();
 	json_object_set_new(obj, "op", json_string("TABLE"));
-	json_object_set_new(obj, "db_name", json_string(db_name ? db_name : ""));
+	json_object_set_new(obj, "db_name", json_string(db_name));
 	json_object_set_new(obj, "name", json_string(name));
 	print_and_free(obj);
 }
@@ -548,7 +610,12 @@ void sqlp_table_refs(struct psql_state *pstate, int n_refs)
 
 void sqlp_update(struct psql_state *pstate, int opts, int n_tbl_ref, int n_assn)
 {
-	printf("exec UPDATE %d %d %d\n", opts, n_tbl_ref, n_assn);
+	json_t *obj = json_object();
+	json_object_set_new(obj, "op", json_string("UPDATE"));
+	json_object_set_new(obj, "opts", json_integer(opts));
+	json_object_set_new(obj, "n_tbl_ref", json_integer(n_tbl_ref));
+	json_object_set_new(obj, "n_assn", json_integer(n_assn));
+	print_and_free(obj);
 }
 
 void sqlp_uservar(struct psql_state *pstate, const char *str)
