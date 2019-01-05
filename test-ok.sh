@@ -1,6 +1,6 @@
 #!/bin/sh
 
-for testfn in $srcdir/ok*.sql $srcdir/tst-*.sql
+for testfn in $srcdir/ok*.sql
 do
 	cat $testfn | ./sql
 	if [ $? -ne 0 ]
