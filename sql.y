@@ -1047,7 +1047,11 @@ main(int ac, char **av)
 
   yyset_in(in_f, pstate.scanner);
 
-  if(!yyparse(pstate.scanner, &pstate)) {
+  int res = yyparse(pstate.scanner, &pstate);
+
+  yylex_destroy(pstate.scanner);
+
+  if (!res) {
     printf("{\"result\":true}\n");
     return 0;
   } else {
