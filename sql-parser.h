@@ -106,7 +106,7 @@ extern void sqlp_index_hint(struct psql_state *pstate, int n_indexed, int opts);
 extern void sqlp_ins_cols(struct psql_state *pstate, int n_cols);
 extern void sqlp_ins_default(struct psql_state *pstate);
 extern void sqlp_ins_dup_update(struct psql_state *pstate, int n_assn);
-extern void sqlp_insert(struct psql_state *pstate, int opts, int n_vals, const char *tbl_name);
+extern void sqlp_insert(struct psql_state *pstate, int opts, int n_vals, int n_cols, const char *tbl_name);
 extern void sqlp_insert_assn(struct psql_state *pstate, int opts, int n_assn, const char *tbl_name);
 extern void sqlp_insert_sel(struct psql_state *pstate, int opts, const char *tbl_name);
 extern void sqlp_into(struct psql_state *pstate, int n_cols);

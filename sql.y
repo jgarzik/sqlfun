@@ -346,7 +346,7 @@ struct psql_state;
 %type <intval> delete_opts delete_list
 %type <intval> insert_opts insert_vals insert_vals_list
 %type <intval> insert_asgn_list opt_if_not_exists update_opts update_asgn_list
-%type <intval> opt_if_exists table_list
+%type <intval> opt_if_exists table_list opt_col_names
 %type <intval> opt_temporary opt_length opt_binary opt_uz enum_list
 %type <intval> column_atts data_type opt_ignore_replace create_col_list
 
@@ -569,7 +569,7 @@ stmt: insert_stmt { sqlp_stmt(pstate); }
 insert_stmt: INSERT insert_opts opt_into NAME
      opt_col_names
      VALUES insert_vals_list
-     opt_ondupupdate { sqlp_insert(pstate, $2, $7, $4); free($4); }
+     opt_ondupupdate { sqlp_insert(pstate, $2, $7, $5, $4); free($4); }
    ;
 
 opt_ondupupdate: /* nil */
@@ -586,8 +586,8 @@ insert_opts: /* nil */ { $$ = 0; }
 opt_into: INTO | /* nil */
    ;
 
-opt_col_names: /* nil */
-   | '(' column_list ')' { sqlp_ins_cols(pstate, $2); }
+opt_col_names: /* nil */ { $$ = 0; }
+   | '(' column_list ')' { sqlp_ins_cols(pstate, $2); $$ = 1; }
    ;
 
 insert_vals_list: '(' insert_vals ')' { sqlp_values(pstate, $2); $$ = 1; }

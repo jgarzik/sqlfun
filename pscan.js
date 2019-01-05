@@ -90,6 +90,7 @@ function parseRecordStream(recs)
 				tbl_name: current.tbl_name,
 				opts: current.opts,
 				values: [],
+				columns: [],
 			};
 
 			var wantVals = current.n_vals;
@@ -97,10 +98,33 @@ function parseRecordStream(recs)
 				const val = stk.pop();
 				assert(val !== undefined);
 
-				objInsert.values.push(val);
+				objInsert.values.unshift(val.values);
+			}
+
+			var wantCols = current.n_cols;
+			assert(wantCols <= 1);
+
+			if (wantCols > 0) {
+				const val = stk.pop();
+				assert(val !== undefined);
+
+				objInsert.columns = val;
 			}
 
 			stk.push(objInsert);
+
+		} else if ('INSERT-COLS' in current) {
+			var arrCols = [];
+
+			var wantVals = current['INSERT-COLS'];
+			while (wantVals-- > 0) {
+				const val = stk.pop();
+				assert(val !== undefined);
+
+				arrCols.unshift(val['COLUMN']);
+			}
+
+			stk.push(arrCols);
 
 		} else if (current.op && current.op == 'CREATE-DB') {
 			var objDb = {

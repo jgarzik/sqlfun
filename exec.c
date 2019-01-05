@@ -462,12 +462,13 @@ void sqlp_ins_dup_update(struct psql_state *pstate, int n_assn)
 	intout("INSERT DUP-ONUPDATE", n_assn);
 }
 
-void sqlp_insert(struct psql_state *pstate, int opts, int n_vals, const char *tbl_name)
+void sqlp_insert(struct psql_state *pstate, int opts, int n_vals, int n_cols, const char *tbl_name)
 {
 	json_t *obj = json_object();
 	json_object_set_new(obj, "op", json_string("INSERT"));
 	json_object_set_new(obj, "opts", json_integer(opts));
 	json_object_set_new(obj, "n_vals", json_integer(n_vals));
+	json_object_set_new(obj, "n_cols", json_integer(n_cols));
 	json_object_set_new(obj, "tbl_name", json_string(tbl_name));
 	print_and_free(obj);
 }
