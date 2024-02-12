@@ -41,7 +41,7 @@ main(int ac, char **av)
 
   psql_free(pstate);
 
-  if (!res) {
+  if (!res && !yyerrno) {
     printf("{\"result\":true}\n");
     return 0;
   } else {

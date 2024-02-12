@@ -21,6 +21,7 @@
 #include <string.h>
 
 char *filename;
+int yyerrno;
 %}
 
 %define api.pure
@@ -31,6 +32,7 @@ char *filename;
 
 %code requires {
 extern char *filename;
+extern int yyerrno;
 
 #include "yyl.h"
 
@@ -327,7 +329,11 @@ void yyerror(YYLTYPE *, yyscan_t scanner, struct psql_state *pstate, const char 
 void lyyerror(YYLTYPE t, const char *s, ...);
  %}
   /* free discarded tokens */
-%destructor { printf ("free at %d %s\n",@$.first_line, $$); free($$); } <strval>
+%destructor {
+#if DEBUG
+printf ("free at %d %s\n",@$.first_line, $$); free($$);
+#endif
+} <strval>
 
 %%
 
@@ -974,7 +980,7 @@ yyerror(YYLTYPE *t, yyscan_t scanner, struct psql_state *pstate, const char *s, 
 	    t->last_line, t->last_column);
   vfprintf(stderr, s, ap);
   fprintf(stderr, "\n");
-
+  yyerrno = 1;
 }
 
 void
@@ -988,5 +994,6 @@ lyyerror(YYLTYPE t, const char *s, ...)
 	    t.last_line, t.last_column);
   vfprintf(stderr, s, ap);
   fprintf(stderr, "\n");
+  yyerrno = 1;
 }
 
