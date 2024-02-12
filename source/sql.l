@@ -18,7 +18,7 @@
 
 %option noyywrap nodefault yylineno case-insensitive reentrant
 %option bison-bridge bison-locations
-%option header-file="sql.lex.h"
+%option header-file="source/sql.lex.h"
 
 %{
 #include <stdarg.h>

@@ -25,6 +25,7 @@ main(int ac, char **av)
 	abort();
 
   if(ac > 1) {
+    puts("wut?");
     if((in_f = fopen(av[1], "r")) == NULL) {
       perror(av[1]);
       exit(1);
@@ -41,7 +42,7 @@ main(int ac, char **av)
 
   psql_free(pstate);
 
-  if (!res && !yyerrno) {
+  if (!res) {
     printf("{\"result\":true}\n");
     return 0;
   } else {

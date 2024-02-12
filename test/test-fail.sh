@@ -1,8 +1,10 @@
 #!/bin/sh
 
-for testfn in $srcdir/fail*.sql
+export PATH=.:..:$PATH
+
+for testfn in fail*.sql
 do
-	cat $testfn | ./sql
+	cat $testfn | sql
 	if [ $? -ne 1 ]
 	then
 		echo "Failed on $testfn"

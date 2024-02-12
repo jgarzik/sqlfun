@@ -25,3 +25,4 @@ libsqlpars-uninstalled.pc
 libsqlpars.pc
 sqlpars-config.h*
 
+build-aux/

@@ -21,10 +21,10 @@ dnl make the compilation flags quiet unless V=1 is used
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
 AC_PREREQ(2.60)
-AC_CONFIG_SRCDIR([exec.c])
+AC_CONFIG_SRCDIR([source/exec.c])
 AC_CONFIG_AUX_DIR([build-aux])
 AC_CONFIG_MACRO_DIR([build-aux/m4])
-AC_CONFIG_HEADERS([sqlpars-config.h])
+AC_CONFIG_HEADERS([source/sqlpars-config.h])
 AM_INIT_AUTOMAKE([subdir-objects foreign])
 
 LIBSQLPARS_MAJOR_VERSION=libsqlpars_major_version

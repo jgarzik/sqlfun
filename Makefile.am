@@ -12,34 +12,34 @@ pkgconfig_DATA = libsqlpars.pc
 # noinst_PROGRAMS = $(TESTS)
 EXTRA_DIST = sql.y sql.l \
 	pscan.js \
-	test-ok.sh test-fail.sh \
-	fail1.sql \
-	fail3.sql \
-	fail4.sql \
-	fail5.sql \
-	xfail2.sql \
-	ok1.sql \
-	ok2.sql \
-	ok3.sql \
-	ok4.sql \
-	ok5.sql \
-	ok6.sql \
-	ok7.sql \
-	ok8.sql \
-	ok9.sql \
-	ok10.sql
+	test/test-ok.sh test/test-fail.sh \
+	test/fail1.sql \
+	test/fail3.sql \
+	test/fail4.sql \
+	test/fail5.sql \
+	test/xfail2.sql \
+	test/ok1.sql \
+	test/ok2.sql \
+	test/ok3.sql \
+	test/ok4.sql \
+	test/ok5.sql \
+	test/ok6.sql \
+	test/ok7.sql \
+	test/ok8.sql \
+	test/ok9.sql \
+	test/ok10.sql
 
-sql_SOURCES = exec.c lib.c main.c sql-parser.h yyl.h
+sql_SOURCES = source/exec.c source/lib.c source/main.c source/sql-parser.h source/yyl.h
 sql_LDADD = @JANSSON_LIBS@
-nodist_sql_SOURCES = sql.c sql.tab.c sql.tab.h sql.lex.h
+nodist_sql_SOURCES = source/sql.c source/sql.tab.c source/sql.tab.h source/sql.lex.h
 
 BUILT_SOURCES = $(nodist_sql_SOURCES)
 CLEANFILES = $(nodist_sql_SOURCES) sql.output
 
-sql.tab.c sql.tab.h:   sql.y Makefile
-	${BISON} -vd $<
+source/sql.tab.c source/sql.tab.h:   source/sql.y Makefile
+	${BISON} -o $@ -vd $<
 
-sql.c sql.lex.h: sql.l Makefile
+source/sql.c source/sql.lex.h: source/sql.l Makefile
 	${LEX} -o $@ $<
 
 TESTS = test-ok.sh test-fail.sh
