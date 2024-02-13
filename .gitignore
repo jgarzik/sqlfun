@@ -7,6 +7,8 @@
 Makefile
 Makefile.in
 
+sqlpars-*.tar.gz
+
 sql.tab.*
 sql.lex.h
 sql.c
@@ -14,8 +16,10 @@ sql
 
 libtool
 configure
+configure~
 stamp-h1
 autom4te.cache/
+build-aux/
 .deps/
 aclocal.m4
 config.log
