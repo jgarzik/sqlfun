@@ -19,6 +19,8 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+
+char *filename;
 %}
 
 %define api.pure
@@ -28,7 +30,7 @@
 %lex-param { yyscan_t scanner }
 
 %code requires {
-char *filename;
+extern char *filename;
 
 #include "yyl.h"
 
