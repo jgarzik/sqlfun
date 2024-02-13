@@ -16,6 +16,7 @@ libtool
 configure
 stamp-h1
 autom4te.cache/
+build-aux/
 .deps/
 aclocal.m4
 config.log
