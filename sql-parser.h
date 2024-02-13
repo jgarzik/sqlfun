@@ -67,6 +67,7 @@ extern void sqlp_alias(struct psql_state *pstate, const char *alias);
 extern void sqlp_assign(struct psql_state *pstate, const char *db_name, const char *name);
 extern void sqlp_assign_at(struct psql_state *pstate, const char *name);
 extern void sqlp_bool(struct psql_state *pstate, int val);
+extern void sqlp_null(struct psql_state *pstate);
 extern void sqlp_call(struct psql_state *pstate, int n_args, const char *name);
 extern void sqlp_call_date(struct psql_state *pstate, int n_args, enum sqlp_expr_ops op);
 extern void sqlp_call_trim_opts(struct psql_state *pstate, int trim_opts);
@@ -99,6 +100,7 @@ extern void sqlp_delete_multi(struct psql_state *pstate, int opts, int n_del, in
 extern void sqlp_drop_db(struct psql_state *pstate, int if_exists, const char *name);
 extern void sqlp_drop_table(struct psql_state *pstate, int temp, int if_exists, int n_tables);
 extern void sqlp_enum_val(struct psql_state *pstate, const char *val);
+extern void sqlp_expr_paren(struct psql_state *pstate);
 extern void sqlp_expr_op(struct psql_state *pstate, enum sqlp_expr_ops op);
 extern void sqlp_expr_cmp(struct psql_state *pstate, int comp);
 extern void sqlp_expr_cmp_sel(struct psql_state *pstate, int sel_type, int comp);

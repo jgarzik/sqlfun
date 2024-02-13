@@ -12,7 +12,7 @@ pkgconfig_DATA = libsqlpars.pc
 # noinst_PROGRAMS = $(TESTS)
 EXTRA_DIST = sql.y sql.l \
 	pscan.js \
-	test-ok.sh test-fail.sh \
+	test-ok.sh test-tst.sh test-fail.sh \
 	fail1.sql \
 	fail3.sql \
 	fail4.sql \
@@ -27,7 +27,16 @@ EXTRA_DIST = sql.y sql.l \
 	ok7.sql \
 	ok8.sql \
 	ok9.sql \
-	ok10.sql
+	ok10.sql \
+	tst-create-db.sql \
+	tst-create-table.sql \
+	tst-delete.sql \
+	tst-drop-db.sql \
+	tst-drop-table.sql \
+	tst-insert.sql \
+	tst-select-null.sql \
+	tst-select-null2.sql \
+	tst-select-null3.sql
 
 sql_SOURCES = exec.c lib.c main.c sql-parser.h yyl.h
 sql_LDADD = @JANSSON_LIBS@
@@ -42,5 +51,5 @@ sql.tab.c sql.tab.h:   sql.y Makefile
 sql.c sql.lex.h: sql.l Makefile
 	${LEX} -o $@ $<
 
-TESTS = test-ok.sh test-fail.sh
+TESTS = test-ok.sh test-fail.sh test-tst.sh
 

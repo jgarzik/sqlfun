@@ -174,6 +174,11 @@ void sqlp_bool(struct psql_state *pstate, int val)
 	boolout("BOOL", val);
 }
 
+void sqlp_null(struct psql_state *pstate)
+{
+	strout("CONST", "NULL"); /* probably this should be a different func */
+}
+
 void sqlp_call(struct psql_state *pstate, int n_args, const char *name)
 {
 	json_t *obj = json_object();
@@ -395,6 +400,11 @@ void sqlp_expr_is_bool(struct psql_state *pstate, int val)
 void sqlp_expr_is_in(struct psql_state *pstate, int val)
 {
 	boolout("EXPR-IS-IN", val);
+}
+
+void sqlp_expr_paren(struct psql_state *pstate)
+{
+	opout("PARENS"); /* probably this should be a different function */
 }
 
 void sqlp_expr_op(struct psql_state *pstate, enum sqlp_expr_ops op)
