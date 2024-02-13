@@ -33,7 +33,10 @@ EXTRA_DIST = sql.y sql.l \
 	tst-delete.sql \
 	tst-drop-db.sql \
 	tst-drop-table.sql \
-	tst-insert.sql
+	tst-insert.sql \
+	tst-select-null.sql \
+	tst-select-null2.sql \
+	tst-select-null3.sql
 
 sql_SOURCES = exec.c lib.c main.c sql-parser.h yyl.h
 sql_LDADD = @JANSSON_LIBS@

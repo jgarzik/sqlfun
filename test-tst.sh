@@ -1,14 +1,6 @@
 #!/bin/sh
 
-TESTS=\
-	$srcdir/tst-create-db.sql \
-	$srcdir/tst-create-table.sql \
-	$srcdir/tst-delete.sql \
-	$srcdir/tst-drop-db.sql \
-	$srcdir/tst-drop-table.sql \
-	$srcdir/tst-insert.sql
-
-for testfn in $TESTS
+for testfn in $srcdir/tst-*.sql
 do
 	cat $testfn | ./sql
 	if [ $? -ne 0 ]

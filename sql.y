@@ -850,6 +850,7 @@ expr: NAME          { sqlp_name(pstate, $1); free($1); }
    | INTNUM        { sqlp_number(pstate, $1); }
    | APPROXNUM     { sqlp_float(pstate, $1); }
    | BOOL          { sqlp_bool(pstate, $1); }
+   | NULLX         { sqlp_null(pstate); }
    ;
 
 expr: expr '+' expr { sqlp_expr_op(pstate, SEO_ADD); }
@@ -959,6 +960,9 @@ expr: CURRENT_TIMESTAMP { sqlp_now(pstate); };
    ;
 
 expr: BINARY expr %prec UMINUS { sqlp_expr_op(pstate, SEO_STRTOBIN); }
+   ;
+
+expr: '(' expr ')'      { sqlp_expr_paren(pstate); }
    ;
 
 %%
