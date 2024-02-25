@@ -1,0 +1,23 @@
+name: C/C++ CI
+
+on: [push]
+
+env:
+  CARGO_TERM_COLOR: always
+
+jobs:
+  linux-ubuntu:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v4
+    - name: Install deps
+      run: sudo apt-get -y install libjansson-dev flex bison
+    - name: Prepare
+      run: ./autogen.sh && ./configure
+    - name: Build
+      run: make -s
+    - name: Run tests
+      run: make -s check
+
