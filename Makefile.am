@@ -13,30 +13,30 @@ pkgconfig_DATA = libsqlpars.pc
 EXTRA_DIST = sql.y sql.l \
 	pscan.js \
 	test-ok.sh test-tst.sh test-fail.sh \
-	fail1.sql \
-	fail3.sql \
-	fail4.sql \
-	fail5.sql \
-	xfail2.sql \
-	ok1.sql \
-	ok2.sql \
-	ok3.sql \
-	ok4.sql \
-	ok5.sql \
-	ok6.sql \
-	ok7.sql \
-	ok8.sql \
-	ok9.sql \
-	ok10.sql \
-	tst-create-db.sql \
-	tst-create-table.sql \
-	tst-delete.sql \
-	tst-drop-db.sql \
-	tst-drop-table.sql \
-	tst-insert.sql \
-	tst-select-null.sql \
-	tst-select-null2.sql \
-	tst-select-null3.sql
+	tests/fail1.sql \
+	tests/fail3.sql \
+	tests/fail4.sql \
+	tests/fail5.sql \
+	tests/xfail2.sql \
+	tests/ok1.sql \
+	tests/ok2.sql \
+	tests/ok3.sql \
+	tests/ok4.sql \
+	tests/ok5.sql \
+	tests/ok6.sql \
+	tests/ok7.sql \
+	tests/ok8.sql \
+	tests/ok9.sql \
+	tests/ok10.sql \
+	tests/tst-create-db.sql \
+	tests/tst-create-table.sql \
+	tests/tst-delete.sql \
+	tests/tst-drop-db.sql \
+	tests/tst-drop-table.sql \
+	tests/tst-insert.sql \
+	tests/tst-select-null.sql \
+	tests/tst-select-null2.sql \
+	tests/tst-select-null3.sql
 
 sql_SOURCES = exec.c lib.c main.c sql-parser.h yyl.h
 sql_LDADD = @JANSSON_LIBS@
