@@ -48,8 +48,10 @@ CLEANFILES = $(nodist_sql_SOURCES) sql.output
 sql.tab.c sql.tab.h:   sql.y Makefile
 	${BISON} -vd $<
 
-sql.c sql.lex.h: sql.l Makefile
+sql.c: sql.l Makefile
 	${LEX} -o $@ $<
+
+sql.lex.h: sql.c ;
 
 TESTS = test-ok.sh test-fail.sh test-tst.sh
 
